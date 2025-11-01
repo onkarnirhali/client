@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# IDE/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Local env overrides (do not commit)
+.env.local
+.env.*.local
+
