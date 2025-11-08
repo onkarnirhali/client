@@ -10,7 +10,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { Todo, TodoInput } from '../../features/todos';
+import { rephraseDescription } from '../../api/ai';
+import { HttpError } from '../../api/http';
+import { useSnackbar } from '../feedback/SnackbarProvider';
 
 type Mode = 'create' | 'edit';
 
@@ -47,6 +51,8 @@ function toDateInput(value: string | null) {
 export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitting }: Props) {
   const [form, setForm] = useState<FormState>(defaultState);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [aiLoading, setAiLoading] = useState(false);
+  const { notify } = useSnackbar();
 
   useEffect(() => {
     if (open) {
@@ -86,6 +92,25 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
     await onSubmit(payload);
   };
 
+  const handleRephrase = async () => {
+    const current = form.description.trim();
+    if (!current) {
+      notify('Add a description first so AI knows what to polish.', 'info');
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const rephrased = await rephraseDescription(current);
+      setForm((prev) => ({ ...prev, description: rephrased }));
+      notify('Description polished with AI ✨', 'success');
+    } catch (err) {
+      const message = err instanceof HttpError ? err.message : 'Unable to rephrase description right now.';
+      notify(message, 'error');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={submitting ? undefined : onClose} fullWidth maxWidth="sm">
       <DialogTitle>{mode === 'create' ? 'New Todo' : 'Edit Todo'}</DialogTitle>
@@ -99,13 +124,25 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
             helperText={errors.title}
             autoFocus
           />
-          <TextField
-            label="Description"
-            value={form.description}
-            onChange={handleChange('description')}
-            multiline
-            minRows={3}
-          />
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+            <TextField
+              label="Description"
+              value={form.description}
+              onChange={handleChange('description')}
+              multiline
+              minRows={3}
+              sx={{ flex: 1 }}
+            />
+            <Button
+              variant="outlined"
+              startIcon={<AutoAwesomeIcon fontSize="small" />}
+              onClick={handleRephrase}
+              disabled={aiLoading || submitting}
+              sx={{ alignSelf: 'stretch', whiteSpace: 'nowrap' }}
+            >
+              {aiLoading ? 'Polishing...' : 'Polish with AI'}
+            </Button>
+          </Box>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <TextField
               select
