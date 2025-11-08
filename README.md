@@ -93,3 +93,7 @@ Angular Alternative
 
 Recommendation
 - React + MUI for fastest path with clean, reusable code.
+
+## Deployment Notes
+- When hosting the Vite build on Render (or any static host), include `static.json` from this repo so all non-file paths rewrite to `/index.html`. This prevents 404s on routes like `/app`.
+- Backend env `LOGIN_SUCCESS_REDIRECT_PATH` can stay `/app`; the rewrite ensures the SPA bootstraps correctly both locally (Vite dev server already rewrites) and in prod.
