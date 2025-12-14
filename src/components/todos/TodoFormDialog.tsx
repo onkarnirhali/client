@@ -6,7 +6,9 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  MenuItem,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
   TextField,
   Typography,
 } from '@mui/material';
@@ -15,14 +17,15 @@ import { Todo, TodoInput } from '../../features/todos';
 import { rephraseDescription } from '../../api/ai';
 import { HttpError } from '../../api/http';
 import { useSnackbar } from '../feedback/SnackbarProvider';
+import { UiPriority, UiStatus, apiPriorityFromUi, apiStatusFromUi, uiPriorityFromApi, uiStatusFromApi } from '../../features/todos/mapping';
 
 type Mode = 'create' | 'edit';
 
 type FormState = {
   title: string;
   description: string;
-  status: Todo['status'];
-  priority: Todo['priority'];
+  status: UiStatus;
+  priority: UiPriority;
   dueDate: string;
 };
 
@@ -38,8 +41,8 @@ type Props = {
 const defaultState: FormState = {
   title: '',
   description: '',
-  status: 'pending',
-  priority: 'normal',
+  status: 'To Do',
+  priority: 'Normal',
   dueDate: '',
 };
 
@@ -60,8 +63,8 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
         setForm({
           title: initial.title || '',
           description: initial.description || '',
-          status: initial.status,
-          priority: initial.priority,
+          status: uiStatusFromApi(initial.status),
+          priority: uiPriorityFromApi(initial.priority),
           dueDate: toDateInput(initial.dueDate),
         });
       } else {
@@ -85,8 +88,8 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
     const payload: TodoInput = {
       title: form.title.trim(),
       description: form.description.trim() ? form.description.trim() : null,
-      status: form.status,
-      priority: form.priority,
+      status: apiStatusFromUi(form.status),
+      priority: apiPriorityFromUi(form.priority),
       dueDate: form.dueDate ? new Date(`${form.dueDate}T00:00:00.000Z`).toISOString() : null,
     };
     await onSubmit(payload);
@@ -143,36 +146,63 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
               {aiLoading ? 'Polishing...' : 'Polish with AI'}
             </Button>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <TextField
-              select
-              label="Status"
-              value={form.status}
-              onChange={handleChange('status')}
-              sx={{ minWidth: 160 }}
-            >
-              <MenuItem value="pending">Pending</MenuItem>
-              <MenuItem value="done">Done</MenuItem>
-            </TextField>
-            <TextField
-              select
-              label="Priority"
-              value={form.priority}
-              onChange={handleChange('priority')}
-              sx={{ minWidth: 160 }}
-            >
-              <MenuItem value="low">Low</MenuItem>
-              <MenuItem value="normal">Normal</MenuItem>
-              <MenuItem value="high">High</MenuItem>
-            </TextField>
-            <TextField
-              label="Due Date"
-              type="date"
-              value={form.dueDate}
-              onChange={handleChange('dueDate')}
-              InputLabelProps={{ shrink: true }}
-            />
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Status
+              </Typography>
+              <RadioGroup
+                value={form.status}
+                onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as UiStatus }))}
+              >
+                <FormControlLabel value="To Do" control={<Radio />} label="To Do" />
+                <FormControlLabel value="In Progress" control={<Radio />} label="In Progress" />
+                <FormControlLabel value="Done" control={<Radio />} label="Done" />
+              </RadioGroup>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Priority
+              </Typography>
+              <Box
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3,1fr)',
+                  gap: 0.5,
+                  p: 0.5,
+                }}
+              >
+                {(['Low', 'Normal', 'High'] as UiPriority[]).map((option) => {
+                  const selected = form.priority === option;
+                  return (
+                    <Button
+                      key={option}
+                      variant={selected ? 'contained' : 'text'}
+                      onClick={() => setForm((prev) => ({ ...prev, priority: option }))}
+                      sx={{
+                        borderRadius: 1.5,
+                        bgcolor: selected ? 'primary.light' : 'transparent',
+                        color: selected ? 'primary.contrastText' : 'text.secondary',
+                        '&:hover': { bgcolor: selected ? 'primary.main' : 'action.hover' },
+                      }}
+                    >
+                      {option}
+                    </Button>
+                  );
+                })}
+              </Box>
+            </Box>
           </Box>
+          <TextField
+            label="Due Date"
+            type="date"
+            value={form.dueDate}
+            onChange={handleChange('dueDate')}
+            InputLabelProps={{ shrink: true }}
+          />
         </Box>
         {submitting && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>

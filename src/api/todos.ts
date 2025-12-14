@@ -17,6 +17,7 @@ export type Todo = {
 
 export type TodoFilters = {
   status?: TodoStatus;
+  priority?: TodoPriority;
   q?: string;
   dueFrom?: string;
   dueTo?: string;
@@ -45,6 +46,7 @@ function buildQuery(path: string, params?: Record<string, string | undefined>) {
 export async function listTodos(filters: TodoFilters = {}) {
   const path = buildQuery('/api/todos', {
     status: filters.status,
+    priority: filters.priority,
     q: filters.q,
     dueFrom: filters.dueFrom,
     dueTo: filters.dueTo,
