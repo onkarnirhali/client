@@ -19,7 +19,7 @@ export default function App() {
       >
         <Route index element={<TodosPage />} />
       </Route>
-      <Route path="/" element={<Navigate to="/app" replace />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
