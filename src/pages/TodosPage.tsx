@@ -13,6 +13,7 @@ import {
   useUpdateTodo,
 } from '../features/todos';
 import { apiPriorityFromUi, apiStatusFromUi, uiPriorityFromApi, uiStatusFromApi } from '../features/todos/mapping';
+import { AiSuggestionsWidget } from '../features/aiSuggestions/AiSuggestionsWidget';
 
 function toDraft(filters: QueryFilters): TodoFiltersDraft {
   return {
@@ -284,6 +285,8 @@ export function TodosPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <AiSuggestionsWidget />
     </Stack>
   );
 }
