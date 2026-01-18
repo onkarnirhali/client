@@ -22,10 +22,10 @@ import {
   useTheme,
 } from '@mui/material';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
-import CloseIcon from '@mui/icons-material/Close';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CloseIcon from '@mui/icons-material/Close';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import { AiSuggestion } from '../../api/ai';
@@ -63,7 +63,7 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   const hasSuggestions = count > 0;
 
   useSuggestionsPolling({
-    enabled: true,
+    enabled: false,
     hasSuggestions,
     refetch,
   });
@@ -139,36 +139,89 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
 
   const content = (
     <Paper
-      elevation={4}
+      elevation={3}
       sx={{
         width: isMobile ? '100%' : 380,
         maxHeight: isMobile ? '70vh' : 520,
-        borderRadius: isMobile ? '16px 16px 0 0' : 2,
+        borderRadius: isMobile ? '18px 18px 0 0' : 3,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        border: '1px solid rgba(15,17,26,0.08)',
+        boxShadow: '0 12px 24px rgba(15,17,26,0.1)',
       }}
     >
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}
-      >
-        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-          AI Suggestions
-        </Typography>
-        <Stack direction="row" spacing={0.5}>
-          <Tooltip title="Refresh">
-            <span>
-              <IconButton size="small" onClick={handleRefresh} disabled={refreshMutation.isPending || isFetching}>
-                <RefreshIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <IconButton size="small" onClick={handleClose} aria-label="Close suggestions">
-            <CloseIcon fontSize="small" />
-          </IconButton>
+      <Stack sx={{ p: 2, borderBottom: '1px solid', borderColor: 'rgba(15,17,26,0.08)' }} spacing={1}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Avatar
+              variant="rounded"
+              sx={{
+                width: 32,
+                height: 32,
+                bgcolor: 'primary.light',
+                color: 'primary.main',
+                fontSize: 18,
+              }}
+            >
+              <AutoAwesomeIcon fontSize="inherit" />
+            </Avatar>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
+              AI Suggestions ({count})
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Tooltip title="Refresh">
+              <span>
+                <IconButton size="small" onClick={handleRefresh} disabled={refreshMutation.isPending || isFetching}>
+                  <RefreshIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <IconButton size="small" onClick={handleClose} aria-label="Close suggestions">
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </Stack>
+
+        <Stack direction="row" spacing={1} justifyContent="flex-start">
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<PlaylistAddIcon />}
+            onClick={handleAddAll}
+            disabled={addMutation.isPending || acceptMutation.isPending}
+            sx={{
+              textTransform: 'none',
+              px: 2.5,
+              borderRadius: 999,
+              backgroundColor: '#e7edff',
+              color: 'primary.main',
+              boxShadow: 'inset 0 -1px 0 rgba(15,17,26,0.06)',
+              '&:hover': { backgroundColor: '#d9e4ff' },
+            }}
+          >
+            Add All
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            startIcon={<ClearAllIcon />}
+            onClick={handleDismissAll}
+            disabled={bulkDismissMutation.isPending}
+            sx={{
+              textTransform: 'none',
+              px: 2.5,
+              borderRadius: 999,
+              bgcolor: 'rgba(15,17,26,0.04)',
+              borderColor: 'rgba(15,17,26,0.08)',
+              color: 'text.primary',
+              '&:hover': { bgcolor: 'rgba(15,17,26,0.08)' },
+            }}
+          >
+            Dismiss All
+          </Button>
         </Stack>
       </Stack>
 
@@ -194,25 +247,6 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
 
       {data.length > 0 && (
         <>
-          <Stack direction="row" spacing={1} sx={{ px: 2, pt: 1, pb: 1 }} justifyContent="flex-end">
-            <Button
-              size="small"
-              startIcon={<PlaylistAddIcon />}
-              onClick={handleAddAll}
-              disabled={addMutation.isPending || acceptMutation.isPending}
-            >
-              Add All
-            </Button>
-            <Button
-              size="small"
-              color="error"
-              startIcon={<ClearAllIcon />}
-              onClick={handleDismissAll}
-              disabled={bulkDismissMutation.isPending}
-            >
-              Dismiss All
-            </Button>
-          </Stack>
           <Divider />
           <Box sx={{ flex: 1, overflowY: 'auto' }}>
             <List dense disablePadding>
@@ -220,9 +254,14 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
                 <ListItem
                   key={s.id}
                   alignItems="flex-start"
-                  sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'rgba(15,17,26,0.05)' }}
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    borderBottom: '1px solid rgba(15,17,26,0.08)',
+                    '&:last-of-type': { borderBottom: 'none' },
+                  }}
                   secondaryAction={
-                    <Stack direction="row" spacing={1}>
+                    <Stack direction="row" spacing={0.5}>
                       <Tooltip title="Add to Todos">
                         <span>
                           <IconButton
@@ -231,6 +270,11 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
                             onClick={() => handleAdd(s)}
                             disabled={addMutation.isPending}
                             aria-label="Add suggestion to todos"
+                            sx={{
+                              bgcolor: 'rgba(76,106,255,0.08)',
+                              '&:hover': { bgcolor: 'rgba(76,106,255,0.14)' },
+                              borderRadius: 1.5,
+                            }}
                           >
                             <AddIcon fontSize="small" />
                           </IconButton>
@@ -244,8 +288,13 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
                             onClick={() => handleDismiss(s)}
                             disabled={dismissMutation.isPending}
                             aria-label="Dismiss suggestion"
+                            sx={{
+                              bgcolor: 'rgba(15,17,26,0.05)',
+                              '&:hover': { bgcolor: 'rgba(15,17,26,0.09)' },
+                              borderRadius: 1.5,
+                            }}
                           >
-                            <DeleteOutlineIcon fontSize="small" />
+                            <CloseIcon fontSize="small" />
                           </IconButton>
                         </span>
                       </Tooltip>
@@ -302,17 +351,17 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
           sx={{
             width: 56,
             height: 56,
-            boxShadow: 3,
-            backgroundColor: '#fff',
-            border: '1px solid',
-            borderColor: 'rgba(15,17,26,0.08)',
+            boxShadow: '0 10px 24px rgba(55,78,255,0.3)',
+            background: 'linear-gradient(135deg, #4c6aff 0%, #6d8dff 100%)',
+            color: '#fff',
             position: anchor === 'bottom-right' ? 'fixed' : 'relative',
             bottom: anchor === 'bottom-right' ? 24 : undefined,
             right: anchor === 'bottom-right' ? 24 : undefined,
             zIndex: 10,
+            '&:hover': { background: 'linear-gradient(135deg, #3f5de6 0%, #5f7dff 100%)' },
           }}
         >
-          <TipsAndUpdatesIcon />
+          <AutoAwesomeIcon />
         </IconButton>
       </Badge>
     </Tooltip>
