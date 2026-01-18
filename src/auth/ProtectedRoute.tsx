@@ -6,6 +6,7 @@ import { useAuth } from './useAuth';
 export function ProtectedRoute({ children }: PropsWithChildren) {
   const { user, loading, error, login } = useAuth();
   const loc = useLocation();
+  // Gate routes: show spinner during auth fetch, offer re-login on session expiry
   if (loading) {
     return (
       <Box sx={{ display: 'grid', placeItems: 'center', height: '60vh' }}>

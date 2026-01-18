@@ -6,6 +6,7 @@ import { TodosPage } from './pages/TodosPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export default function App() {
+  // Top-level route map: login, protected app layout (todos + AI widget), fallback 404
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />

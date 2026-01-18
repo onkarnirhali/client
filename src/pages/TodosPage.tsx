@@ -35,6 +35,7 @@ function toFilters(draft: TodoFiltersDraft): QueryFilters {
   return next;
 }
 
+// Task board: filters, CRUD dialogs, and AI suggestions bubble
 export function TodosPage() {
   const [filters, setFilters] = useState<QueryFilters>({});
   const [draft, setDraft] = useState<TodoFiltersDraft>(() => toDraft(filters));

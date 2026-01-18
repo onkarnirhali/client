@@ -11,6 +11,8 @@ import { createTodo, TodoInput } from '../../api/todos';
 const SUGGESTIONS_KEY = ['ai-suggestions'];
 const DISMISSED_STORAGE_KEY = 'aiDismissedIds';
 
+// React Query helpers for AI suggestions: fetch, poll, refresh, add, dismiss (with local persistence)
+
 function loadDismissed(): Set<number> {
   try {
     const raw = localStorage.getItem(DISMISSED_STORAGE_KEY);

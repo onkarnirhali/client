@@ -8,6 +8,7 @@ function todosKey(filters: TodoFilters) {
 
 export function useTodos(filters: TodoFilters) {
   const queryKey = useMemo(() => todosKey(filters), [filters]);
+  // Query todos for current filters; refetch handled via invalidations below
   return useQuery({
     queryKey,
     queryFn: () => listTodos(filters),

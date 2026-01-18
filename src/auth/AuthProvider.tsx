@@ -21,6 +21,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const { notify } = useSnackbar();
   const notifiedRef = useRef(false);
 
+  // Refresh session on mount; surface expiry once via snackbar
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     refresh();
   }, [refresh]);
 
+  // OAuth login kickoff via API base /auth/google
   const handleLogin = () => {
     const base = API_BASE_URL || '';
     window.location.href = `${base}/auth/google`;

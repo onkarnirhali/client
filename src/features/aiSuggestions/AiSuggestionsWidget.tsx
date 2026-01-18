@@ -40,6 +40,7 @@ import {
 } from './hooks';
 import { useSnackbar } from '../../components/feedback/SnackbarProvider';
 
+// Floating AI suggestions bubble + desktop popper / mobile sheet: list, refresh, add/dismiss/bulk actions
 type Props = {
   anchor?: 'bottom-right';
 };
