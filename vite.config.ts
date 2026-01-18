@@ -7,6 +7,20 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     allowedHosts: ['dev.onkarn.info'],
+    proxy: {
+      '/auth': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
+      '/ai': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
+    },
   },
 });
 
