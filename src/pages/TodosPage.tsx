@@ -178,7 +178,7 @@ export function TodosPage() {
             }}
           />
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Welcome to VibeCode
+            Welcome to Might as well
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 520, mx: 'auto' }}>
             Your AI-assisted todo manager. Add a task to get started and see the magic happen.

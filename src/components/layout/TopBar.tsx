@@ -51,7 +51,7 @@ export function TopBar() {
             />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            VibeCode
+            Might as well
           </Typography>
         </Stack>
 

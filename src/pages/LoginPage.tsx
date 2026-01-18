@@ -28,7 +28,7 @@ export function LoginPage() {
       >
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-            VibeCode
+            Might as well
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Sign in to continue
