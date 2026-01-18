@@ -6,7 +6,11 @@ export function QueryProvider({ children }: PropsWithChildren) {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: { retry: 1, refetchOnWindowFocus: false },
+          queries: {
+            retry: 1,
+            staleTime: 60 * 1000,
+            refetchOnWindowFocus: false,
+          },
           mutations: { retry: 0 },
         },
       }),
