@@ -17,16 +17,25 @@ export class HttpError extends Error {
 async function doFetch(input: string, init?: RequestInit & { timeoutMs?: number }): Promise<Response> {
   const url = API_BASE_URL ? new URL(input, API_BASE_URL).toString() : input;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), init?.timeoutMs || 10000);
+  const timeoutMs = init?.timeoutMs ?? 20000;
+  const timeout = timeoutMs > 0 ? setTimeout(() => controller.abort('timeout'), timeoutMs) : null;
+  const signal = init?.signal ?? controller.signal;
+  const headers = { 'Content-Type': 'application/json', ...(init?.headers || {}) };
   try {
     return await fetch(url, {
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
-      signal: controller.signal,
       ...init,
+      credentials: 'include',
+      headers,
+      signal,
     });
+  } catch (err) {
+    const isAbort = err instanceof DOMException && err.name === 'AbortError';
+    if (isAbort) {
+      throw new HttpError(408, 'Request timed out, please try again', undefined, 'TIMEOUT');
+    }
+    throw err;
   } finally {
-    clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
   }
 }
 
