@@ -7,6 +7,7 @@ export type AiSuggestion = {
   sourceMessageIds: string[];
   confidence: number | null;
   status: string;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 };
@@ -40,4 +41,22 @@ export async function acceptAiSuggestion(id: number): Promise<AiSuggestion> {
     method: 'POST',
   });
   return res.suggestion;
+}
+
+// Mark suggestion dismissed
+export async function dismissAiSuggestion(id: number, reason?: string): Promise<AiSuggestion> {
+  const res = await request<{ suggestion: AiSuggestion }>(`/ai/suggestions/${id}/dismiss`, {
+    method: 'POST',
+    body: JSON.stringify(reason ? { reason } : {}),
+  });
+  return res.suggestion;
+}
+
+// Bulk dismiss suggestions
+export async function bulkDismissAiSuggestions(ids: number[], reason?: string): Promise<number[]> {
+  const res = await request<{ dismissed: number[] }>('/ai/suggestions/dismiss', {
+    method: 'POST',
+    body: JSON.stringify(reason ? { ids, reason } : { ids }),
+  });
+  return res.dismissed;
 }

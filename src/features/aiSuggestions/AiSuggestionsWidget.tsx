@@ -49,11 +49,11 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { notify } = useSnackbar();
-  const { data = [], isLoading, refetch, dismissedRef, isFetching, error } = useAiSuggestions();
+  const { data = [], isLoading, refetch, isFetching, error } = useAiSuggestions();
   const refreshMutation = useRefreshAiSuggestions();
   const acceptMutation = useAcceptSuggestion();
-  const dismissMutation = useDismissSuggestion(dismissedRef);
-  const bulkDismissMutation = useBulkDismiss(dismissedRef);
+  const dismissMutation = useDismissSuggestion();
+  const bulkDismissMutation = useBulkDismiss();
   const addMutation = useAddTodoFromSuggestion();
 
   const [open, setOpen] = useState(false);
