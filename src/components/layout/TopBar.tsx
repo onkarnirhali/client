@@ -1,4 +1,5 @@
-import { AppBar, Toolbar, Typography, Button, Box, Avatar, Stack } from '@mui/material';
+import { MouseEvent, useState } from 'react';
+import { AppBar, Toolbar, Typography, Button, Box, Avatar, Stack, Menu, MenuItem } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
 
@@ -7,11 +8,31 @@ export function TopBar() {
   const initials = user?.name?.[0] || user?.email?.[0] || '?';
   const navigate = useNavigate();
   const location = useLocation();
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
   const handleNewTodo = () => {
     const params = new URLSearchParams(location.search);
     params.set('new', '1');
     navigate({ pathname: '/app', search: params.toString() ? `?${params.toString()}` : '' });
+  };
+
+  const handleAvatarClick = (event: MouseEvent<HTMLElement>) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => setMenuAnchor(null);
+
+  const handleLogoutClick = () => {
+    handleCloseMenu();
+    logout();
+  };
+
+  const handleAddGmail = () => {
+    handleCloseMenu();
+  };
+
+  const handleAddOutlook = () => {
+    handleCloseMenu();
   };
 
   return (
@@ -69,11 +90,54 @@ export function TopBar() {
                   {user.email}
                 </Typography>
               </Box>
-              <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>{initials.toUpperCase()}</Avatar>
-              <Button variant="text" color="inherit" onClick={logout} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
-                Logout
-              </Button>
+              <Avatar
+                onClick={handleAvatarClick}
+                sx={{ bgcolor: 'primary.main', width: 40, height: 40, cursor: 'pointer' }}
+                aria-haspopup="true"
+                aria-controls="profile-menu"
+              >
+                {initials.toUpperCase()}
+              </Avatar>
             </Stack>
+            <Menu
+              id="profile-menu"
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={handleCloseMenu}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              PaperProps={{ sx: { minWidth: 180, mt: 1 } }}
+            >
+              <MenuItem
+                onClick={handleAddGmail}
+                sx={{
+                  bgcolor: '#7b1f1f',
+                  color: '#fff',
+                  borderRadius: 1,
+                  '&:hover': { bgcolor: '#611717' },
+                  mx: 1,
+                  mt: 0.5,
+                }}
+              >
+                Add Gmail
+              </MenuItem>
+              <MenuItem
+                onClick={handleAddOutlook}
+                sx={{
+                  bgcolor: '#1a73e8',
+                  color: '#fff',
+                  borderRadius: 1,
+                  '&:hover': { bgcolor: '#155ec0' },
+                  mx: 1,
+                  mt: 0.5,
+                }}
+              >
+                Add Outlook
+              </MenuItem>
+              <MenuItem onClick={handleLogoutClick} sx={{ mx: 1, mt: 0.5, borderRadius: 1 }}>
+                Logout
+              </MenuItem>
+            </Menu>
           </Stack>
         ) : (
           <Button variant="contained" onClick={login}>

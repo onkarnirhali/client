@@ -258,6 +258,12 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
                     px: 2,
                     py: 1.5,
                     borderBottom: '1px solid rgba(15,17,26,0.08)',
+                    // Keep action buttons aligned with the confidence line instead of vertically centered
+                    '& .MuiListItemSecondaryAction-root': {
+                      top: 'auto',
+                      bottom: 12,
+                      transform: 'none',
+                    },
                     '&:last-of-type': { borderBottom: 'none' },
                   }}
                   secondaryAction={
@@ -337,34 +343,40 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   );
 
   const bubble = (
-    <Tooltip title={hasSuggestions ? 'AI Suggestions' : 'No suggestions'}>
-      <Badge
-        color={hasSuggestions ? 'primary' : 'default'}
-        overlap="circular"
-        badgeContent={hasSuggestions ? count : 0}
-        invisible={!hasSuggestions}
-      >
-        <IconButton
-          aria-label="Open AI suggestions"
-          onClick={handleToggle}
-          color="primary"
-          sx={{
-            width: 56,
-            height: 56,
-            boxShadow: '0 10px 24px rgba(55,78,255,0.3)',
-            background: 'linear-gradient(135deg, #4c6aff 0%, #6d8dff 100%)',
-            color: '#fff',
-            position: anchor === 'bottom-right' ? 'fixed' : 'relative',
-            bottom: anchor === 'bottom-right' ? 24 : undefined,
-            right: anchor === 'bottom-right' ? 24 : undefined,
-            zIndex: 10,
-            '&:hover': { background: 'linear-gradient(135deg, #3f5de6 0%, #5f7dff 100%)' },
-          }}
+    <Box
+      sx={{
+        position: anchor === 'bottom-right' ? 'fixed' : 'relative',
+        bottom: anchor === 'bottom-right' ? 24 : undefined,
+        right: anchor === 'bottom-right' ? 24 : undefined,
+        zIndex: 10,
+      }}
+    >
+      <Tooltip title={hasSuggestions ? 'AI Suggestions' : 'No suggestions'}>
+        <Badge
+          color={hasSuggestions ? 'primary' : 'default'}
+          overlap="circular"
+          badgeContent={hasSuggestions ? count : 0}
+          invisible={!hasSuggestions}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <AutoAwesomeIcon />
-        </IconButton>
-      </Badge>
-    </Tooltip>
+          <IconButton
+            aria-label="Open AI suggestions"
+            onClick={handleToggle}
+            color="primary"
+            sx={{
+              width: 56,
+              height: 56,
+              boxShadow: '0 10px 24px rgba(55,78,255,0.3)',
+              background: 'linear-gradient(135deg, #4c6aff 0%, #6d8dff 100%)',
+              color: '#fff',
+              '&:hover': { background: 'linear-gradient(135deg, #3f5de6 0%, #5f7dff 100%)' },
+            }}
+          >
+            <AutoAwesomeIcon />
+          </IconButton>
+        </Badge>
+      </Tooltip>
+    </Box>
   );
 
   if (isMobile) {

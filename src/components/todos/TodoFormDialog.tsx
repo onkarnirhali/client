@@ -115,10 +115,10 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
   };
 
   return (
-    <Dialog open={open} onClose={submitting ? undefined : onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} sx={{borderRadius: 0.5}} onClose={submitting ? undefined : onClose} fullWidth maxWidth="sm">
       <DialogTitle>{mode === 'create' ? 'New Todo' : 'Edit Todo'}</DialogTitle>
       <DialogContent dividers>
-        <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
+        <Box sx={{ display: 'grid', gap: 2, mt: 1, borderRadius: 0.5 }}>
           <TextField
             label="Title"
             value={form.title}
@@ -134,14 +134,14 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
               onChange={handleChange('description')}
               multiline
               minRows={3}
-              sx={{ flex: 1 }}
+              sx={{ flex: 1, borderRadius: 0.5 }}
             />
             <Button
               variant="outlined"
               startIcon={<AutoAwesomeIcon fontSize="small" />}
               onClick={handleRephrase}
               disabled={aiLoading || submitting}
-              sx={{ alignSelf: 'stretch', whiteSpace: 'nowrap' }}
+              sx={{ alignSelf: 'stretch', whiteSpace: 'nowrap',borderRadius: 0.5 }}
             >
               {aiLoading ? 'Polishing...' : 'Polish with AI'}
             </Button>
@@ -168,7 +168,7 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
                 sx={{
                   border: '1px solid',
                   borderColor: 'divider',
-                  borderRadius: 2,
+                  borderRadius: 0.5,
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3,1fr)',
                   gap: 0.5,
@@ -183,7 +183,7 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
                       variant={selected ? 'contained' : 'text'}
                       onClick={() => setForm((prev) => ({ ...prev, priority: option }))}
                       sx={{
-                        borderRadius: 1.5,
+                        borderRadius: 0.5,
                         bgcolor: selected ? 'primary.light' : 'transparent',
                         color: selected ? 'primary.contrastText' : 'text.secondary',
                         '&:hover': { bgcolor: selected ? 'primary.main' : 'action.hover' },
@@ -211,10 +211,10 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button onClick={onClose} sx={{ borderRadius: 0.5 }} disabled={submitting}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={submitting}>
+        <Button onClick={handleSubmit} sx={{ borderRadius: 0.5 }} variant="contained" disabled={submitting}>
           {mode === 'create' ? 'Create' : 'Save'}
         </Button>
       </DialogActions>

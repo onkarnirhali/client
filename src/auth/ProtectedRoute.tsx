@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { PropsWithChildren } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './useAuth';
@@ -15,19 +15,7 @@ export function ProtectedRoute({ children }: PropsWithChildren) {
     );
   }
   if (error && !user) {
-    return (
-      <Box sx={{ display: 'grid', placeItems: 'center', height: '60vh', textAlign: 'center', px: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Session expired
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Please sign in again to continue.
-        </Typography>
-        <Button variant="contained" sx={{ mt: 2 }} onClick={login}>
-          Sign in
-        </Button>
-      </Box>
-    );
+    return <Navigate to="/login" state={{ from: loc }} replace />;
   }
   if (!user) return <Navigate to="/login" state={{ from: loc }} replace />;
   return children ? <>{children}</> : <Outlet />;
