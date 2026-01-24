@@ -367,7 +367,7 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
               width: 56,
               height: 56,
               boxShadow: '0 10px 24px rgba(55,78,255,0.3)',
-              background: 'linear-gradient(135deg, #4c6aff 0%, #6d8dff 100%)',
+              background: 'linear-gradient(135deg, #d0d9fa 0%, #6d8dff 100%)',
               color: '#fff',
               '&:hover': { background: 'linear-gradient(135deg, #3f5de6 0%, #5f7dff 100%)' },
             }}
