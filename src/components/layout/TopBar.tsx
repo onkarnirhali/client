@@ -2,6 +2,7 @@ import { MouseEvent, useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, Avatar, Stack, Menu, MenuItem } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
+import { IntegrationsDialog } from '../integrations/IntegrationsDialog';
 
 export function TopBar() {
   const { user, login, logout } = useAuth();
@@ -9,6 +10,7 @@ export function TopBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [integrationsOpen, setIntegrationsOpen] = useState(false);
 
   const handleNewTodo = () => {
     const params = new URLSearchParams(location.search);
@@ -27,12 +29,9 @@ export function TopBar() {
     logout();
   };
 
-  const handleAddGmail = () => {
+  const handleAddProvider = () => {
     handleCloseMenu();
-  };
-
-  const handleAddOutlook = () => {
-    handleCloseMenu();
+    setIntegrationsOpen(true);
   };
 
   return (
@@ -109,7 +108,7 @@ export function TopBar() {
               PaperProps={{ sx: { minWidth: 180, mt: 1 } }}
             >
               <MenuItem
-                onClick={handleAddGmail}
+                onClick={handleAddProvider}
                 sx={{
                   bgcolor: '#7b1f1f',
                   color: '#fff',
@@ -122,7 +121,7 @@ export function TopBar() {
                 Add Gmail
               </MenuItem>
               <MenuItem
-                onClick={handleAddOutlook}
+                onClick={handleAddProvider}
                 sx={{
                   bgcolor: '#1a73e8',
                   color: '#fff',
@@ -145,6 +144,7 @@ export function TopBar() {
           </Button>
         )}
       </Toolbar>
+      <IntegrationsDialog open={integrationsOpen} onClose={() => setIntegrationsOpen(false)} />
     </AppBar>
   );
 }
