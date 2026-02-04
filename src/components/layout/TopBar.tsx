@@ -18,6 +18,10 @@ export function TopBar() {
     navigate({ pathname: '/app', search: params.toString() ? `?${params.toString()}` : '' });
   };
 
+  const handleAdmin = () => {
+    navigate('/admin');
+  };
+
   const handleAvatarClick = (event: MouseEvent<HTMLElement>) => {
     setMenuAnchor(event.currentTarget);
   };
@@ -80,6 +84,11 @@ export function TopBar() {
             <Button variant="contained" onClick={handleNewTodo} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
               New Todo
             </Button>
+            {user.role === 'admin' && (
+              <Button variant="outlined" onClick={handleAdmin} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
+                Admin
+              </Button>
+            )}
             <Stack direction="row" spacing={1.5} alignItems="center">
               <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
                 <Typography variant="body2" fontWeight={600}>
