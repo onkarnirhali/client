@@ -105,7 +105,7 @@ export function LoginPage() {
             How it works
           </Typography>
 
-          <Grid container spacing={4} transform="translateZ(0)">
+          <Grid container spacing={4} sx={{ transform: 'translateZ(0)' }}>
             {/* Feature 1 */}
             <Grid item xs={12} md={4}>
               <Stack direction="row" spacing={2.5}>

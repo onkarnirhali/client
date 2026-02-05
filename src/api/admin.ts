@@ -5,17 +5,23 @@ export type AdminSummary = {
   activeUsers24h: number;
 };
 
-export type AdminUserMetric = {
+export type AdminUser = {
   id: number;
   email: string;
   name?: string | null;
+  providerId?: string | null;
+  providerName?: string | null;
   role?: string | null;
+  isEnabled?: boolean | null;
   createdAt?: string | null;
+  updatedAt?: string | null;
   lastActiveAt?: string | null;
-  suggestionsGenerated: number;
-  suggestionsAccepted: number;
-  tokensGeneration: number;
-  tokensEmbedding: number;
+  outlookAccountEmail?: string | null;
+  outlookTenantId?: string | null;
+  suggestionsGenerated?: number;
+  suggestionsAccepted?: number;
+  tokensGeneration?: number;
+  tokensEmbedding?: number;
 };
 
 export type AdminEvent = {
@@ -48,9 +54,22 @@ export function getAdminSummary() {
 }
 
 export function listAdminUsers(limit: number, offset: number) {
-  return request<{ items: AdminUserMetric[]; total: number; limit: number; offset: number }>(
+  return request<{ items: AdminUser[]; total: number; limit: number; offset: number }>(
     `/admin/users?limit=${limit}&offset=${offset}`
   );
+}
+
+export function listAdminUsersByRole(limit: number, offset: number, role: string) {
+  return request<{ items: AdminUser[]; total: number; limit: number; offset: number }>(
+    `/admin/users?limit=${limit}&offset=${offset}&role=${encodeURIComponent(role)}`
+  );
+}
+
+export function updateAdminUser(id: number, payload: { role?: string; isEnabled?: boolean }) {
+  return request<{ success: boolean }>(`/admin/users/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
 }
 
 export function listAdminEvents(limit: number, offset: number) {
