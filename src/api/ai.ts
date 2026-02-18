@@ -12,6 +12,16 @@ export type AiSuggestion = {
   updatedAt: string;
 };
 
+export type SuggestionContextMeta = {
+  mode: 'gmail_only' | 'outlook_only' | 'both' | 'none';
+  reasonCode?: 'NO_PROVIDER_CONNECTED' | 'INSUFFICIENT_HISTORY';
+};
+
+export type SuggestionsResponse = {
+  suggestions: AiSuggestion[];
+  context?: SuggestionContextMeta;
+};
+
 export async function rephraseDescription(description: string): Promise<string> {
   const body = { description };
   const res = await request<{ rephrased: string }>('/ai/rephrase', {
@@ -22,17 +32,23 @@ export async function rephraseDescription(description: string): Promise<string> 
 }
 
 // List cached AI suggestions for the current user
-export async function listAiSuggestions(): Promise<AiSuggestion[]> {
-  const res = await request<{ suggestions: AiSuggestion[] }>('/ai/suggestions');
-  return res.suggestions;
+export async function listAiSuggestions(): Promise<SuggestionsResponse> {
+  const res = await request<SuggestionsResponse>('/ai/suggestions');
+  return {
+    suggestions: res.suggestions || [],
+    context: res.context,
+  };
 }
 
 // Trigger server-side refresh pipeline then return new suggestions
-export async function refreshAiSuggestions(): Promise<AiSuggestion[]> {
-  const res = await request<{ suggestions: AiSuggestion[] }>('/ai/suggestions/refresh', {
+export async function refreshAiSuggestions(): Promise<SuggestionsResponse> {
+  const res = await request<SuggestionsResponse>('/ai/suggestions/refresh', {
     method: 'POST',
   });
-  return res.suggestions;
+  return {
+    suggestions: res.suggestions || [],
+    context: res.context,
+  };
 }
 
 // Mark suggestion accepted (helper endpoint)

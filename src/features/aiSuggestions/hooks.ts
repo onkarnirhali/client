@@ -5,12 +5,14 @@ import {
   listAiSuggestions,
   refreshAiSuggestions,
   AiSuggestion,
+  SuggestionsResponse,
   dismissAiSuggestion,
   bulkDismissAiSuggestions,
 } from '../../api/ai';
 import { createTodo, TodoInput } from '../../api/todos';
 
 const SUGGESTIONS_KEY = ['ai-suggestions'];
+const EMPTY_SUGGESTIONS: SuggestionsResponse = { suggestions: [] };
 
 export function useAiSuggestions() {
   const query = useQuery({
@@ -25,8 +27,8 @@ export function useRefreshAiSuggestions() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: () => refreshAiSuggestions(),
-    onSuccess: (suggestions) => {
-      client.setQueryData(SUGGESTIONS_KEY, suggestions);
+    onSuccess: (payload) => {
+      client.setQueryData(SUGGESTIONS_KEY, payload);
     },
   });
 }
@@ -39,7 +41,13 @@ export function useAcceptSuggestion() {
       return suggestion;
     },
     onSuccess: (_data, id) => {
-      client.setQueryData<AiSuggestion[]>(SUGGESTIONS_KEY, (prev) => (prev || []).filter((s) => s.id !== id));
+      client.setQueryData<SuggestionsResponse>(SUGGESTIONS_KEY, (prev) => {
+        const current = prev || EMPTY_SUGGESTIONS;
+        return {
+          ...current,
+          suggestions: (current.suggestions || []).filter((s) => s.id !== id),
+        };
+      });
     },
   });
 }
@@ -49,7 +57,13 @@ export function useDismissSuggestion() {
   return useMutation({
     mutationFn: async (id: number) => dismissAiSuggestion(id),
     onSuccess: (_data, id) => {
-      client.setQueryData<AiSuggestion[]>(SUGGESTIONS_KEY, (prev) => (prev || []).filter((s) => s.id !== id));
+      client.setQueryData<SuggestionsResponse>(SUGGESTIONS_KEY, (prev) => {
+        const current = prev || EMPTY_SUGGESTIONS;
+        return {
+          ...current,
+          suggestions: (current.suggestions || []).filter((s) => s.id !== id),
+        };
+      });
     },
   });
 }
@@ -59,7 +73,13 @@ export function useBulkDismiss() {
   return useMutation({
     mutationFn: async (ids: number[]) => bulkDismissAiSuggestions(ids),
     onSuccess: (dismissedIds) => {
-      client.setQueryData<AiSuggestion[]>(SUGGESTIONS_KEY, (prev) => (prev || []).filter((s) => !dismissedIds.includes(s.id)));
+      client.setQueryData<SuggestionsResponse>(SUGGESTIONS_KEY, (prev) => {
+        const current = prev || EMPTY_SUGGESTIONS;
+        return {
+          ...current,
+          suggestions: (current.suggestions || []).filter((s) => !dismissedIds.includes(s.id)),
+        };
+      });
     },
   });
 }
@@ -76,7 +96,13 @@ export function useAddTodoFromSuggestion() {
       return createTodo(payload);
     },
     onSuccess: (_todo, { suggestion }) => {
-      client.setQueryData<AiSuggestion[]>(SUGGESTIONS_KEY, (prev) => (prev || []).filter((s) => s.id !== suggestion.id));
+      client.setQueryData<SuggestionsResponse>(SUGGESTIONS_KEY, (prev) => {
+        const current = prev || EMPTY_SUGGESTIONS;
+        return {
+          ...current,
+          suggestions: (current.suggestions || []).filter((s) => s.id !== suggestion.id),
+        };
+      });
       // also refresh todos list
       client.invalidateQueries({ queryKey: ['todos'] });
     },

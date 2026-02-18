@@ -49,7 +49,7 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { notify } = useSnackbar();
-  const { data = [], isLoading, refetch, isFetching, error } = useAiSuggestions();
+  const { data, isLoading, refetch, isFetching, error } = useAiSuggestions();
   const refreshMutation = useRefreshAiSuggestions();
   const acceptMutation = useAcceptSuggestion();
   const dismissMutation = useDismissSuggestion();
@@ -59,7 +59,9 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-  const count = data.length;
+  const suggestions = data?.suggestions || [];
+  const context = data?.context;
+  const count = suggestions.length;
   const hasSuggestions = count > 0;
 
   useSuggestionsPolling({
@@ -113,9 +115,9 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   };
 
   const handleAddAll = async () => {
-    if (!data.length) return;
+    if (!suggestions.length) return;
     try {
-      for (const s of data) {
+      for (const s of suggestions) {
         await handleAdd(s);
       }
       notify('All suggestions added', 'success');
@@ -125,11 +127,11 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   };
 
   const handleDismissAll = async () => {
-    if (!data.length) return;
+    if (!suggestions.length) return;
     const confirmed = window.confirm('Dismiss all suggestions?');
     if (!confirmed) return;
     try {
-      const ids = data.map((s) => s.id);
+      const ids = suggestions.map((s) => s.id);
       await bulkDismissMutation.mutateAsync(ids);
       notify('Dismissed all suggestions', 'info');
     } catch (err) {
@@ -234,10 +236,14 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
         </Stack>
       )}
 
-      {!isLoading && !isFetching && data.length === 0 && (
+      {!isLoading && !isFetching && suggestions.length === 0 && (
         <Stack alignItems="center" spacing={1} sx={{ py: 4, px: 3 }}>
           <Typography variant="body2" color="text.secondary">
-            No suggestions right now
+            {context?.reasonCode === 'INSUFFICIENT_HISTORY'
+              ? 'Create tasks to train AI suggestions or connect Gmail/Outlook.'
+              : context?.reasonCode === 'NO_PROVIDER_CONNECTED'
+                ? 'Connect Gmail/Outlook to enable email-based suggestions.'
+                : 'No suggestions right now'}
           </Typography>
           <Button size="small" variant="outlined" onClick={handleRefresh} startIcon={<RefreshIcon />}>
             Refresh
@@ -245,12 +251,12 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
         </Stack>
       )}
 
-      {data.length > 0 && (
+      {suggestions.length > 0 && (
         <>
           <Divider />
           <Box sx={{ flex: 1, overflowY: 'auto' }}>
             <List dense disablePadding>
-              {data.map((s) => {
+              {suggestions.map((s) => {
                 const sourceLabel = typeof s.metadata?.sourceLabel === 'string' ? s.metadata.sourceLabel : '';
                 return (
                   <ListItem
