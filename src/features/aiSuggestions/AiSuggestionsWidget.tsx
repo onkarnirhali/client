@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Avatar,
   Badge,
@@ -250,91 +250,94 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
           <Divider />
           <Box sx={{ flex: 1, overflowY: 'auto' }}>
             <List dense disablePadding>
-              {data.map((s) => (
-                <ListItem
-                  key={s.id}
-                  alignItems="flex-start"
-                  sx={{
-                    px: 2,
-                    py: 1.5,
-                    borderBottom: '1px solid rgba(15,17,26,0.08)',
-                    // Keep action buttons aligned with the confidence line instead of vertically centered
-                    '& .MuiListItemSecondaryAction-root': {
-                      top: 'auto',
-                      bottom: 12,
-                      transform: 'none',
-                    },
-                    '&:last-of-type': { borderBottom: 'none' },
-                  }}
-                  secondaryAction={
-                    <Stack direction="row" spacing={0.5}>
-                      <Tooltip title="Add to Todos">
-                        <span>
-                          <IconButton
-                            edge="end"
-                            size="small"
-                            onClick={() => handleAdd(s)}
-                            disabled={addMutation.isPending}
-                            aria-label="Add suggestion to todos"
-                            sx={{
-                              bgcolor: 'rgba(76,106,255,0.08)',
-                              '&:hover': { bgcolor: 'rgba(76,106,255,0.14)' },
-                              borderRadius: 1.5,
-                            }}
-                          >
-                            <AddIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title="Dismiss">
-                        <span>
-                          <IconButton
-                            edge="end"
-                            size="small"
-                            onClick={() => handleDismiss(s)}
-                            disabled={dismissMutation.isPending}
-                            aria-label="Dismiss suggestion"
-                            sx={{
-                              bgcolor: 'rgba(15,17,26,0.05)',
-                              '&:hover': { bgcolor: 'rgba(15,17,26,0.09)' },
-                              borderRadius: 1.5,
-                            }}
-                          >
-                            <CloseIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </Stack>
-                  }
-                >
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.dark' }}>
-                      <TipsAndUpdatesIcon fontSize="small" />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
-                        {s.title}
-                      </Typography>
-                    }
-                    secondary={
-                      <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                        {s.detail && (
-                          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
-                            {s.detail}
-                          </Typography>
-                        )}
-                        {typeof s.confidence === 'number' && (
-                          <Typography variant="caption" color="text.secondary">
-                            Confidence: {(s.confidence * 100).toFixed(0)}%
-                          </Typography>
-                        )}
+              {data.map((s) => {
+                const sourceLabel = typeof s.metadata?.sourceLabel === 'string' ? s.metadata.sourceLabel : '';
+                return (
+                  <ListItem
+                    key={s.id}
+                    alignItems="flex-start"
+                    sx={{
+                      px: 2,
+                      py: 1.5,
+                      borderBottom: '1px solid rgba(15,17,26,0.08)',
+                      // Keep action buttons aligned near metadata lines instead of vertically centered
+                      '& .MuiListItemSecondaryAction-root': {
+                        top: 'auto',
+                        bottom: 12,
+                        transform: 'none',
+                      },
+                      '&:last-of-type': { borderBottom: 'none' },
+                    }}
+                    secondaryAction={
+                      <Stack direction="row" spacing={0.5}>
+                        <Tooltip title="Add to Todos">
+                          <span>
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              onClick={() => handleAdd(s)}
+                              disabled={addMutation.isPending}
+                              aria-label="Add suggestion to todos"
+                              sx={{
+                                bgcolor: 'rgba(76,106,255,0.08)',
+                                '&:hover': { bgcolor: 'rgba(76,106,255,0.14)' },
+                                borderRadius: 1.5,
+                              }}
+                            >
+                              <AddIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Dismiss">
+                          <span>
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              onClick={() => handleDismiss(s)}
+                              disabled={dismissMutation.isPending}
+                              aria-label="Dismiss suggestion"
+                              sx={{
+                                bgcolor: 'rgba(15,17,26,0.05)',
+                                '&:hover': { bgcolor: 'rgba(15,17,26,0.09)' },
+                                borderRadius: 1.5,
+                              }}
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
                       </Stack>
                     }
-                  />
-                </ListItem>
-              ))}
+                  >
+                    <ListItemAvatar>
+                      <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.dark' }}>
+                        <TipsAndUpdatesIcon fontSize="small" />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+                          {s.title}
+                        </Typography>
+                      }
+                      secondary={
+                        <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                          {s.detail && (
+                            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                              {s.detail}
+                            </Typography>
+                          )}
+                          {sourceLabel ? (
+                            <Typography variant="caption" color="text.secondary">
+                              Source: {sourceLabel}
+                            </Typography>
+                          ) : null}
+                        </Stack>
+                      }
+                    />
+                  </ListItem>
+                );
+              })}
             </List>
           </Box>
         </>

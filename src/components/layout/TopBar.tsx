@@ -1,11 +1,19 @@
 import { MouseEvent, useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, Avatar, Stack, Menu, MenuItem } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LinkOffIcon from '@mui/icons-material/LinkOff';
+import SyncProblemIcon from '@mui/icons-material/SyncProblem';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
 import { IntegrationsDialog } from '../integrations/IntegrationsDialog';
+import { useProviders } from '../../features/integrations/hooks';
+import { API_BASE_URL } from '../../app/config/env';
+import { useSnackbar } from '../feedback/SnackbarProvider';
 
 export function TopBar() {
   const { user, login, logout } = useAuth();
+  const { data: providers = [], isLoading: providersLoading } = useProviders();
+  const { notify } = useSnackbar();
   const initials = user?.name?.[0] || user?.email?.[0] || '?';
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,9 +41,45 @@ export function TopBar() {
     logout();
   };
 
-  const handleAddProvider = () => {
+  const gmail = providers.find((p) => p.provider === 'gmail') || {
+    provider: 'gmail',
+    displayName: 'Gmail',
+    linked: false,
+    ingestEnabled: false,
+  };
+  const outlook = providers.find((p) => p.provider === 'outlook') || {
+    provider: 'outlook',
+    displayName: 'Outlook',
+    linked: false,
+    ingestEnabled: false,
+  };
+
+  const getProviderStateText = (linked: boolean, ingestEnabled: boolean) => {
+    if (!linked) return 'Not connected';
+    if (!ingestEnabled) return 'Connected (ingest off)';
+    return 'Connected';
+  };
+
+  const connectProvider = (provider: string) => {
+    const base = API_BASE_URL || '';
+    if (provider === 'outlook') {
+      window.location.href = `${base}/auth/outlook/start`;
+      return;
+    }
+    if (provider === 'gmail') {
+      window.location.href = `${base}/auth/google`;
+      return;
+    }
+    notify('Unsupported provider', 'error');
+  };
+
+  const handleProviderMenuAction = (provider: string, linked: boolean) => {
     handleCloseMenu();
-    setIntegrationsOpen(true);
+    if (linked) {
+      setIntegrationsOpen(true);
+      return;
+    }
+    connectProvider(provider);
   };
 
   return (
@@ -116,31 +160,80 @@ export function TopBar() {
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               PaperProps={{ sx: { minWidth: 180, mt: 1 } }}
             >
+              {providersLoading ? (
+                <MenuItem disabled sx={{ mx: 1, mt: 0.5, borderRadius: 1 }}>
+                  Loading connections...
+                </MenuItem>
+              ) : (
+                <>
+                  <MenuItem
+                    onClick={() => handleProviderMenuAction('gmail', gmail.linked)}
+                    sx={{
+                      bgcolor: gmail.linked && gmail.ingestEnabled ? '#1b5e20' : gmail.linked ? '#7d6608' : '#7b1f1f',
+                      color: '#fff',
+                      borderRadius: 1,
+                      '&:hover': {
+                        bgcolor: gmail.linked && gmail.ingestEnabled ? '#144a19' : gmail.linked ? '#6a5607' : '#611717',
+                      },
+                      mx: 1,
+                      mt: 0.5,
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      {gmail.linked && gmail.ingestEnabled ? (
+                        <CheckCircleIcon fontSize="small" />
+                      ) : gmail.linked ? (
+                        <SyncProblemIcon fontSize="small" />
+                      ) : (
+                        <LinkOffIcon fontSize="small" />
+                      )}
+                      <Typography variant="body2">
+                        {gmail.linked ? 'Gmail Connected' : 'Connect Gmail'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                        {getProviderStateText(gmail.linked, gmail.ingestEnabled)}
+                      </Typography>
+                    </Stack>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => handleProviderMenuAction('outlook', outlook.linked)}
+                    sx={{
+                      bgcolor: outlook.linked && outlook.ingestEnabled ? '#1a73e8' : outlook.linked ? '#7d6608' : '#374151',
+                      color: '#fff',
+                      borderRadius: 1,
+                      '&:hover': {
+                        bgcolor: outlook.linked && outlook.ingestEnabled ? '#155ec0' : outlook.linked ? '#6a5607' : '#1f2937',
+                      },
+                      mx: 1,
+                      mt: 0.5,
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      {outlook.linked && outlook.ingestEnabled ? (
+                        <CheckCircleIcon fontSize="small" />
+                      ) : outlook.linked ? (
+                        <SyncProblemIcon fontSize="small" />
+                      ) : (
+                        <LinkOffIcon fontSize="small" />
+                      )}
+                      <Typography variant="body2">
+                        {outlook.linked ? 'Outlook Connected' : 'Connect Outlook'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                        {getProviderStateText(outlook.linked, outlook.ingestEnabled)}
+                      </Typography>
+                    </Stack>
+                  </MenuItem>
+                </>
+              )}
               <MenuItem
-                onClick={handleAddProvider}
-                sx={{
-                  bgcolor: '#7b1f1f',
-                  color: '#fff',
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: '#611717' },
-                  mx: 1,
-                  mt: 0.5,
+                onClick={() => {
+                  handleCloseMenu();
+                  setIntegrationsOpen(true);
                 }}
+                sx={{ mx: 1, mt: 0.5, borderRadius: 1 }}
               >
-                Add Gmail
-              </MenuItem>
-              <MenuItem
-                onClick={handleAddProvider}
-                sx={{
-                  bgcolor: '#1a73e8',
-                  color: '#fff',
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: '#155ec0' },
-                  mx: 1,
-                  mt: 0.5,
-                }}
-              >
-                Add Outlook
+                Manage Integrations
               </MenuItem>
               <MenuItem onClick={handleLogoutClick} sx={{ mx: 1, mt: 0.5, borderRadius: 1 }}>
                 Logout

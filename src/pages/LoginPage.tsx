@@ -1,12 +1,24 @@
-import { Box, Button, Container, Grid, Stack, Typography, useTheme } from '@mui/material';
+import { Box, Button, CircularProgress, Container, Grid, Stack, Typography } from '@mui/material';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 export function LoginPage() {
-  const { login } = useAuth();
-  const theme = useTheme();
+  const { login, user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/app" replace />;
+  }
 
   return (
     <Box
