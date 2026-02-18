@@ -10,21 +10,11 @@ import { useAuth } from '../auth/useAuth';
 import { AdminUser } from '../api/admin';
 import { useAdminUsers, useUpdateAdminUser } from '../features/admin/hooks';
 import { useSnackbar } from '../components/feedback/SnackbarProvider';
+import { formatDateTime } from '../utils/date';
+import { safeText } from '../utils/text';
 
 const TAB_ALL = 0;
 const TAB_ADMINS = 1;
-
-function formatDate(value?: string | null) {
-  if (!value) return '-';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
-}
-
-function safeText(value?: string | null) {
-  if (!value) return '-';
-  const trimmed = String(value).trim();
-  return trimmed ? trimmed : '-';
-}
 
 function usePendingSet() {
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
@@ -151,13 +141,13 @@ export function AdminPage() {
         field: 'createdAt',
         headerName: 'Created',
         minWidth: 160,
-        valueGetter: (_value, row) => formatDate(row.createdAt),
+        valueGetter: (_value, row) => formatDateTime(row.createdAt),
       },
       {
         field: 'lastActiveAt',
         headerName: 'Last Active',
         minWidth: 160,
-        valueGetter: (_value, row) => formatDate(row.lastActiveAt),
+        valueGetter: (_value, row) => formatDateTime(row.lastActiveAt),
       },
       {
         field: 'active',

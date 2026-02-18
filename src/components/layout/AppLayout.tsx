@@ -6,7 +6,7 @@ export function AppLayout() {
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
       <TopBar />
-      <Container maxWidth="lg" sx={{ mt: 4, pb: 6 }}>
+      <Container maxWidth="xl" sx={{ mt: 4, pb: 6 }}>
         <Outlet />
       </Container>
     </Box>

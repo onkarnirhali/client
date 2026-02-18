@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import dayjs from 'dayjs';
+import { formatDateShort } from '../../utils/date';
 import { Todo } from '../../features/todos';
 import { uiPriorityFromApi, uiStatusFromApi } from '../../features/todos/mapping';
 
@@ -23,11 +23,6 @@ type Props = {
   onEdit: (todo: Todo) => void;
   onDelete: (todo: Todo) => void;
 };
-
-function formatDate(value: string | null) {
-  if (!value) return '—';
-  return dayjs(value).format('MMM D, YYYY');
-}
 
 export function TodoList({ items, loading, onEdit, onDelete }: Props) {
   return (
@@ -89,7 +84,7 @@ export function TodoList({ items, loading, onEdit, onDelete }: Props) {
                 <TableCell>
                   <Chip size="small" variant="filled" {...priorityChipProps} />
                 </TableCell>
-                <TableCell>{formatDate(todo.dueDate)}</TableCell>
+                <TableCell>{formatDateShort(todo.dueDate)}</TableCell>
                 <TableCell align="right">
                   <IconButton size="small" aria-label="Edit" onClick={() => onEdit(todo)}>
                     <EditIcon fontSize="small" />
