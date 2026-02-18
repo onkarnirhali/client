@@ -10,6 +10,7 @@
 | 2026-02-18-web-alpha-provider-indicator | 2026-02-18 | WEB-ALPHA-002 | direct | Updated profile menu with live Gmail/Outlook connection indicators and direct provider connect flows. | npm run build | approved |
 | 2026-02-18-web-alpha-suggestion-source | 2026-02-18 | WEB-ALPHA-003 | direct | Updated suggestion UI to show inbox source label and removed confidence score display. | npm run build | approved |
 | 2026-02-18-web-suggestion-context-guidance | 2026-02-18 | WEB-ALPHA-003 | direct | Updated AI suggestion hooks/API wiring to consume context metadata and show no-provider/insufficient-history guidance in empty states. | npm run build | approved |
+| 2026-02-18-web-provider-status-proxy-fix | 2026-02-18 | WEB-ALPHA-002 | direct | Fixed Vite dev proxy routing for `/me` so provider status requests reach Auth-API instead of returning frontend 404 fallback states. | npm run build | approved |
 
 ## Change Entry Contract
 
