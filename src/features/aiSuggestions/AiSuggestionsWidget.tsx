@@ -58,6 +58,7 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
 
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [refreshHint, setRefreshHint] = useState<string | null>(null);
 
   const suggestions = data?.suggestions || [];
   const context = data?.context;
@@ -86,9 +87,42 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
 
   const handleRefresh = async () => {
     try {
-      await refreshMutation.mutateAsync();
+      const payload = await refreshMutation.mutateAsync();
+      const refreshMeta = payload.refresh;
+      if (refreshMeta?.generationFallbackUsed) {
+        setRefreshHint('Using cached/history suggestions due to temporary AI formatting issue.');
+      } else if (refreshMeta?.partial) {
+        if (refreshMeta.scheduleState === 'scheduled') {
+          setRefreshHint('Showing latest suggestions now; full inbox catch-up is continuing.');
+        } else if (refreshMeta.scheduleState === 'already_running') {
+          setRefreshHint('Showing latest suggestions now; inbox catch-up is already running.');
+        } else {
+          setRefreshHint('Showing latest suggestions now; refresh was limited by time budget.');
+        }
+      } else if (refreshMeta?.preservedExisting) {
+        setRefreshHint('No new suggestions were generated, so previous suggestions are still shown.');
+      } else {
+        setRefreshHint(null);
+      }
       await refetch();
-      notify('Suggestions refreshed', 'info');
+      let message = 'Suggestions refreshed';
+      if (refreshMeta?.generationFallbackUsed) {
+        message = 'Suggestions refreshed with fallback due to temporary AI formatting issue.';
+      } else if (refreshMeta?.preservedExisting) {
+        message = 'Refresh completed. Keeping previous suggestions because no new suggestions were generated.';
+      } else if (refreshMeta?.partial) {
+        if (refreshMeta.scheduleState === 'scheduled') {
+          message = 'Suggestions refreshed. Full inbox catch-up is continuing.';
+        } else if (refreshMeta.scheduleState === 'already_running') {
+          message = 'Suggestions refreshed. Inbox catch-up is already running.';
+        } else {
+          message = 'Suggestions refreshed with a time limit.';
+        }
+      }
+      notify(
+        message,
+        'info'
+      );
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Failed to refresh suggestions', 'error');
       console.error('Refresh suggestions failed', err);
@@ -225,6 +259,11 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
             Dismiss All
           </Button>
         </Stack>
+        {refreshHint ? (
+          <Typography variant="caption" color="text.secondary">
+            {refreshHint}
+          </Typography>
+        ) : null}
       </Stack>
 
       {(isLoading || isFetching || refreshMutation.isPending) && (

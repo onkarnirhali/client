@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Alert,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,6 +29,7 @@ function ProviderCard({ provider }: { provider: Provider }) {
   const connected = provider.linked;
   const ingestEnabled = provider.ingestEnabled;
   const account = provider.metadata?.accountEmail as string | undefined;
+  const reconnectRequired = provider.metadata?.reconnectRequired === true;
   const { notify } = useSnackbar();
   const disconnectMutation = useDisconnectProvider();
 
@@ -70,10 +72,17 @@ function ProviderCard({ provider }: { provider: Provider }) {
         </Typography>
         {connected ? (
           <Chip size="small" icon={<CheckCircleIcon color="success" />} label="Connected" color="success" variant="outlined" />
+        ) : reconnectRequired ? (
+          <Chip size="small" label="Reconnect required" color="warning" variant="outlined" />
         ) : (
           <Chip size="small" icon={<CancelIcon color="error" />} label="Not connected" color="default" variant="outlined" />
         )}
       </Stack>
+      {reconnectRequired && !connected && (
+        <Alert severity="warning" sx={{ py: 0 }}>
+          Access expired. Reconnect to resume ingestion.
+        </Alert>
+      )}
       {account ? (
         <Typography variant="body2" color="text.secondary">
           Linked account: {account}
@@ -100,7 +109,7 @@ function ProviderCard({ provider }: { provider: Provider }) {
           </>
         ) : (
           <Button variant="contained" size="small" onClick={handleConnect}>
-            Connect {label}
+            {reconnectRequired ? `Reconnect ${label}` : `Connect ${label}`}
           </Button>
         )}
       </Stack>

@@ -1,5 +1,5 @@
 import { MouseEvent, useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box, Avatar, Stack, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, Avatar, Stack, Menu, MenuItem, Alert } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import SyncProblemIcon from '@mui/icons-material/SyncProblem';
@@ -53,6 +53,11 @@ export function TopBar() {
     linked: false,
     ingestEnabled: false,
   };
+  const reconnectRequiredProviders = providers.filter(
+    (provider) => !provider.linked && provider.metadata?.reconnectRequired === true
+  );
+  const reconnectPrimary = reconnectRequiredProviders[0] || null;
+  const reconnectLabel = reconnectPrimary?.displayName || reconnectPrimary?.provider || 'provider';
 
   const getProviderStateText = (linked: boolean, ingestEnabled: boolean) => {
     if (!linked) return 'Not connected';
@@ -80,6 +85,18 @@ export function TopBar() {
       return;
     }
     connectProvider(provider);
+  };
+
+  const handleReconnectAction = () => {
+    if (!reconnectPrimary) {
+      setIntegrationsOpen(true);
+      return;
+    }
+    if (reconnectRequiredProviders.length > 1) {
+      setIntegrationsOpen(true);
+      return;
+    }
+    connectProvider(reconnectPrimary.provider);
   };
 
   return (
@@ -246,6 +263,22 @@ export function TopBar() {
           </Button>
         )}
       </Toolbar>
+      {reconnectRequiredProviders.length > 0 && (
+        <Box sx={{ px: 2, pb: 1.5 }}>
+          <Alert
+            severity="warning"
+            action={(
+              <Button color="inherit" size="small" onClick={handleReconnectAction}>
+                {reconnectRequiredProviders.length === 1 ? `Reconnect ${reconnectLabel}` : 'Manage Integrations'}
+              </Button>
+            )}
+          >
+            {reconnectRequiredProviders.length === 1
+              ? `${reconnectLabel} access expired. Reconnect to resume email-based suggestions.`
+              : 'Some email providers need reconnection to resume email-based suggestions.'}
+          </Alert>
+        </Box>
+      )}
       <IntegrationsDialog open={integrationsOpen} onClose={() => setIntegrationsOpen(false)} />
     </AppBar>
   );

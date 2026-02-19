@@ -39,6 +39,24 @@ async function doFetch(input: string, init?: RequestInit & { timeoutMs?: number 
   }
 }
 
+function isLikelyHtmlPayload(contentType: string, text: string) {
+  const type = (contentType || '').toLowerCase();
+  if (type.includes('text/html')) return true;
+  const trimmed = (text || '').trim().toLowerCase();
+  return trimmed.startsWith('<!doctype html') || trimmed.startsWith('<html');
+}
+
+function toFriendlyErrorMessage(input: string, status: number, contentType: string, text: string) {
+  if (
+    status >= 500
+    && (input.includes('/ai/suggestions/refresh') || input.includes('/ai/suggestions'))
+    && isLikelyHtmlPayload(contentType, text)
+  ) {
+    return 'Temporary server issue while refreshing suggestions. Please retry in a moment.';
+  }
+  return text;
+}
+
 export async function request<T>(input: string, init?: RequestInit, retryOn401 = true): Promise<T> {
   let res = await doFetch(input, init);
   if (res.status === 401 && retryOn401) {
@@ -66,7 +84,7 @@ export async function request<T>(input: string, init?: RequestInit, retryOn401 =
     } else {
       const text = await res.text().catch(() => '');
       data = text;
-      message = text;
+      message = toFriendlyErrorMessage(input, res.status, contentType, text);
     }
     if (!message) message = `Request failed: ${res.status}`;
     throw new HttpError(res.status, message, data, code);

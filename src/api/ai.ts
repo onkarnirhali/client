@@ -17,9 +17,21 @@ export type SuggestionContextMeta = {
   reasonCode?: 'NO_PROVIDER_CONNECTED' | 'INSUFFICIENT_HISTORY';
 };
 
+export type SuggestionRefreshMeta = {
+  partial: boolean;
+  limitedBy?: 'MANUAL_CAP' | 'TIME_BUDGET';
+  catchUpScheduled: boolean;
+  scheduleState?: 'scheduled' | 'already_running' | 'skipped';
+  processedMessages: number;
+  preservedExisting?: boolean;
+  generationFallbackUsed?: boolean;
+  generationErrorCode?: 'INVALID_JSON';
+};
+
 export type SuggestionsResponse = {
   suggestions: AiSuggestion[];
   context?: SuggestionContextMeta;
+  refresh?: SuggestionRefreshMeta;
 };
 
 export async function rephraseDescription(description: string): Promise<string> {
@@ -37,6 +49,7 @@ export async function listAiSuggestions(): Promise<SuggestionsResponse> {
   return {
     suggestions: res.suggestions || [],
     context: res.context,
+    refresh: res.refresh,
   };
 }
 
@@ -48,6 +61,7 @@ export async function refreshAiSuggestions(): Promise<SuggestionsResponse> {
   return {
     suggestions: res.suggestions || [],
     context: res.context,
+    refresh: res.refresh,
   };
 }
 

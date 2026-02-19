@@ -12,7 +12,12 @@
 | 2026-02-18-web-suggestion-context-guidance | 2026-02-18 | WEB-ALPHA-003 | direct | Updated AI suggestion hooks/API wiring to consume context metadata and show no-provider/insufficient-history guidance in empty states. | npm run build | approved |
 | 2026-02-18-web-provider-status-proxy-fix | 2026-02-18 | WEB-ALPHA-002 | direct | Fixed Vite dev proxy routing for `/me` so provider status requests reach Auth-API instead of returning frontend 404 fallback states. | npm run build | approved |
 
+| 2026-02-18-governance-followup-automation | 2026-02-18 | DOC-BOOTSTRAP-001 | direct | Repaired governance markdown corruption and added branch-protection follow-up runbook plus automation script for required status checks. | node tools/agents/validate-governance.mjs; powershell PSParser syntax check for tools/agents/configure-branch-protection.ps1 | approved |
+| 2026-02-19-client-frontend-docs-rephrase | 2026-02-19 | DOC-BOOTSTRAP-001 | direct | Rephrased frontend governance docs with current stack, folder structure, UX guardrails, and cross-references to API/UX sources. | node tools/agents/validate-governance.mjs | approved |
+
 ## Change Entry Contract
 
 - alignment: `direct` or `partial` or `none`
 - decision: `approved` or `revise` or `blocked`
+
+
