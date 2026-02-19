@@ -7,7 +7,7 @@
 | WEB-ALPHA-002 | G-ALPHA-003 | P0 | Alpha | completed | web | Connection state indicators in profile menu are correct. |
 | WEB-ALPHA-003 | G-ALPHA-004 | P1 | Alpha | completed | web | Suggestion source is shown and confidence score is hidden. |
 | WEB-BETA-001 | G-BETA-003 | P0 | Beta | planned | web | Billing and entitlement UI are production ready. |
-| WEB-BETA-002 | G-BETA-002 | P1 | Beta | planned | web | Note taker and OCR UI flow are implemented. |
+| WEB-BETA-002 | G-BETA-002 | P1 | Beta | planned | web | Note taker UI flow is implemented (OCR deferred to mobile phase). |
 | WEB-BETA-003 | G-BETA-001 | P0 | Beta | planned | web | Privacy controls for export and delete are user accessible. |
 | WEB-FINAL-001 | G-FINAL-003 | P0 | Final | planned | web | Web performance and reliability meet launch targets. |
 

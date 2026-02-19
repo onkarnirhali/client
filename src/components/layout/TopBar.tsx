@@ -6,6 +6,7 @@ import SyncProblemIcon from '@mui/icons-material/SyncProblem';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
 import { IntegrationsDialog } from '../integrations/IntegrationsDialog';
+import { PrivacyDialog } from '../privacy/PrivacyDialog';
 import { useProviders } from '../../features/integrations/hooks';
 import { API_BASE_URL } from '../../app/config/env';
 import { useSnackbar } from '../feedback/SnackbarProvider';
@@ -19,6 +20,7 @@ export function TopBar() {
   const location = useLocation();
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const handleNewTodo = () => {
     const params = new URLSearchParams(location.search);
@@ -28,6 +30,10 @@ export function TopBar() {
 
   const handleAdmin = () => {
     navigate('/admin');
+  };
+
+  const handleNotes = () => {
+    navigate('/app/notes');
   };
 
   const handleAvatarClick = (event: MouseEvent<HTMLElement>) => {
@@ -145,6 +151,9 @@ export function TopBar() {
             <Button variant="contained" onClick={handleNewTodo} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
               New Todo
             </Button>
+            <Button variant="outlined" onClick={handleNotes}>
+              Notes
+            </Button>
             {user.role === 'admin' && (
               <Button variant="outlined" onClick={handleAdmin} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
                 Admin
@@ -252,6 +261,15 @@ export function TopBar() {
               >
                 Manage Integrations
               </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleCloseMenu();
+                  setPrivacyOpen(true);
+                }}
+                sx={{ mx: 1, mt: 0.5, borderRadius: 1 }}
+              >
+                Privacy Controls
+              </MenuItem>
               <MenuItem onClick={handleLogoutClick} sx={{ mx: 1, mt: 0.5, borderRadius: 1 }}>
                 Logout
               </MenuItem>
@@ -280,6 +298,7 @@ export function TopBar() {
         </Box>
       )}
       <IntegrationsDialog open={integrationsOpen} onClose={() => setIntegrationsOpen(false)} />
+      <PrivacyDialog open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </AppBar>
   );
 }

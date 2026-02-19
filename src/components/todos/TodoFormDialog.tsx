@@ -9,6 +9,7 @@ import {
   FormControlLabel,
   Radio,
   RadioGroup,
+  Stack,
   TextField,
   Typography,
 } from '@mui/material';
@@ -18,6 +19,14 @@ import { rephraseDescription } from '../../api/ai';
 import { HttpError } from '../../api/http';
 import { useSnackbar } from '../feedback/SnackbarProvider';
 import { UiPriority, UiStatus, apiPriorityFromUi, apiStatusFromUi, uiPriorityFromApi, uiStatusFromApi } from '../../features/todos/mapping';
+import {
+  AddNotesMenuButton,
+  LinkExistingNotesDialog,
+  LinkedNoteChip,
+  LinkedNotesChips,
+  NoteEditorDialog,
+} from '../notes';
+import { NoteInput, NoteSummary } from '../../features/notes';
 
 type Mode = 'create' | 'edit';
 
@@ -55,6 +64,10 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
   const [form, setForm] = useState<FormState>(defaultState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState(false);
+  const [newNoteDialogOpen, setNewNoteDialogOpen] = useState(false);
+  const [linkExistingOpen, setLinkExistingOpen] = useState(false);
+  const [linkedExistingNotes, setLinkedExistingNotes] = useState<Array<{ id: number; title: string; isPasswordProtected: boolean }>>([]);
+  const [newNoteDrafts, setNewNoteDrafts] = useState<Array<{ key: string; payload: NoteInput }>>([]);
   const { notify } = useSnackbar();
 
   useEffect(() => {
@@ -67,9 +80,12 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
           priority: uiPriorityFromApi(initial.priority),
           dueDate: toDateInput(initial.dueDate),
         });
+        setLinkedExistingNotes(initial.linkedNotes || []);
       } else {
         setForm(defaultState);
+        setLinkedExistingNotes([]);
       }
+      setNewNoteDrafts([]);
       setErrors({});
     }
   }, [open, initial]);
@@ -91,6 +107,10 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
       status: apiStatusFromUi(form.status),
       priority: apiPriorityFromUi(form.priority),
       dueDate: form.dueDate ? new Date(`${form.dueDate}T00:00:00.000Z`).toISOString() : null,
+      notes: {
+        linkedNoteIds: linkedExistingNotes.map((note) => note.id),
+        newNotes: newNoteDrafts.map((draft) => draft.payload),
+      },
     };
     await onSubmit(payload);
   };
@@ -113,6 +133,21 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
       setAiLoading(false);
     }
   };
+
+  const combinedLinkedChips: LinkedNoteChip[] = [
+    ...linkedExistingNotes.map((note) => ({
+      key: `existing-${note.id}`,
+      label: note.title,
+      isPasswordProtected: note.isPasswordProtected,
+      isNew: false,
+    })),
+    ...newNoteDrafts.map((draft) => ({
+      key: draft.key,
+      label: draft.payload.title,
+      isPasswordProtected: Boolean(draft.payload.passwordProtection?.enabled),
+      isNew: true,
+    })),
+  ];
 
   return (
     <Dialog open={open} sx={{borderRadius: 0.5}} onClose={submitting ? undefined : onClose} fullWidth maxWidth="sm">
@@ -146,6 +181,25 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
               {aiLoading ? 'Polishing...' : 'Polish with AI'}
             </Button>
           </Box>
+          <Stack spacing={1}>
+            <AddNotesMenuButton
+              disabled={submitting}
+              onNewNote={() => setNewNoteDialogOpen(true)}
+              onLinkExisting={() => setLinkExistingOpen(true)}
+            />
+            <LinkedNotesChips
+              items={combinedLinkedChips}
+              disabled={submitting}
+              onRemove={(key) => {
+                if (key.startsWith('existing-')) {
+                  const id = Number(key.replace('existing-', ''));
+                  setLinkedExistingNotes((prev) => prev.filter((item) => item.id !== id));
+                  return;
+                }
+                setNewNoteDrafts((prev) => prev.filter((item) => item.key !== key));
+              }}
+            />
+          </Stack>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
             <Box>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
@@ -218,6 +272,38 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
           {mode === 'create' ? 'Create' : 'Save'}
         </Button>
       </DialogActions>
+
+      <NoteEditorDialog
+        open={newNoteDialogOpen}
+        title="Create New Note"
+        saveLabel="Save Note Draft"
+        onClose={() => setNewNoteDialogOpen(false)}
+        onSave={async (payload) => {
+          setNewNoteDrafts((prev) => [...prev, { key: `new-${Date.now()}-${prev.length}`, payload }]);
+          setNewNoteDialogOpen(false);
+          notify('Note draft added to task', 'success');
+        }}
+      />
+
+      <LinkExistingNotesDialog
+        open={linkExistingOpen}
+        linkedNoteIds={linkedExistingNotes.map((note) => note.id)}
+        onClose={() => setLinkExistingOpen(false)}
+        onLink={(notes: NoteSummary[]) => {
+          setLinkedExistingNotes((prev) => {
+            const byId = new Map(prev.map((item) => [item.id, item]));
+            for (const note of notes) {
+              byId.set(note.id, {
+                id: note.id,
+                title: note.title,
+                isPasswordProtected: note.isPasswordProtected,
+              });
+            }
+            return Array.from(byId.values());
+          });
+          notify('Notes linked to task draft', 'success');
+        }}
+      />
     </Dialog>
   );
 }

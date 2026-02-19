@@ -1,4 +1,5 @@
 import { request } from './http';
+import { NoteContent } from './notes';
 
 export type TodoStatus = 'pending' | 'done';
 export type TodoPriority = 'low' | 'normal' | 'high';
@@ -13,6 +14,11 @@ export type Todo = {
   dueDate: string | null;
   createdAt: string;
   updatedAt: string;
+  linkedNotes?: {
+    id: number;
+    title: string;
+    isPasswordProtected: boolean;
+  }[];
 };
 
 export type TodoFilters = {
@@ -29,6 +35,17 @@ export type TodoInput = {
   status?: TodoStatus;
   priority?: TodoPriority;
   dueDate?: string | null;
+  notes?: {
+    linkedNoteIds?: number[];
+    newNotes?: {
+      title: string;
+      content: NoteContent;
+      passwordProtection?: {
+        enabled: boolean;
+        password?: string;
+      };
+    }[];
+  };
 };
 
 function buildQuery(path: string, params?: Record<string, string | undefined>) {

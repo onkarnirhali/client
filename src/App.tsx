@@ -6,6 +6,8 @@ import { AppLayout } from './components/layout/AppLayout';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const TodosPage = lazy(() => import('./pages/TodosPage').then((m) => ({ default: m.TodosPage })));
+const NotesPage = lazy(() => import('./pages/NotesPage').then((m) => ({ default: m.NotesPage })));
+const NoteDetailPage = lazy(() => import('./pages/NoteDetailPage').then((m) => ({ default: m.NoteDetailPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
@@ -24,6 +26,8 @@ export default function App() {
           }
         >
           <Route index element={<TodosPage />} />
+          <Route path="notes" element={<NotesPage />} />
+          <Route path="notes/:id" element={<NoteDetailPage />} />
         </Route>
         <Route
           path="/admin"

@@ -14,6 +14,9 @@
 
 | 2026-02-18-governance-followup-automation | 2026-02-18 | DOC-BOOTSTRAP-001 | direct | Repaired governance markdown corruption and added branch-protection follow-up runbook plus automation script for required status checks. | node tools/agents/validate-governance.mjs; powershell PSParser syntax check for tools/agents/configure-branch-protection.ps1 | approved |
 | 2026-02-19-client-frontend-docs-rephrase | 2026-02-19 | DOC-BOOTSTRAP-001 | direct | Rephrased frontend governance docs with current stack, folder structure, UX guardrails, and cross-references to API/UX sources. | node tools/agents/validate-governance.mjs | approved |
+| 2026-02-19-web-beta-privacy-controls | 2026-02-19 | WEB-BETA-003 | direct | Added profile-menu privacy controls for JSON data export and confirmed account deletion, wired to new backend `/me/privacy/*` endpoints. | npm run build | approved |
+| 2026-02-19-web-beta-notes-ocr-deferral | 2026-02-19 | WEB-BETA-002 | direct | Updated repo goal criteria to formalize Beta scope as Notes-only and defer OCR to mobile phase planning. | node tools/agents/validate-governance.mjs | approved |
+| 2026-02-19-web-beta-notes-phase-1 | 2026-02-19 | WEB-BETA-002 | direct | Implemented Notes Phase 1 UI: notes routes/pages, reusable rich note editor + protection flows, top-nav Notes entry, list/grid preference behavior, and Todo modal Add Notes (new + link existing) integration. | npm run build | approved |
 
 ## Change Entry Contract
 
