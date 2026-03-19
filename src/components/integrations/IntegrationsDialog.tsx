@@ -1,20 +1,3 @@
-import {
-  Box,
-  Button,
-  Alert,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Stack,
-  Typography,
-  Chip,
-  CircularProgress,
-} from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import MailOutlineIcon from '@mui/icons-material/MailOutline';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { Provider, useProviders, useDisconnectProvider } from '../../features/integrations/hooks';
 import { API_BASE_URL } from '../../app/config/env';
 import { useSnackbar } from '../feedback/SnackbarProvider';
@@ -27,7 +10,6 @@ type Props = {
 function ProviderCard({ provider }: { provider: Provider }) {
   const label = provider.displayName || provider.provider;
   const connected = provider.linked;
-  const ingestEnabled = provider.ingestEnabled;
   const account = provider.metadata?.accountEmail as string | undefined;
   const reconnectRequired = provider.metadata?.reconnectRequired === true;
   const { notify } = useSnackbar();
@@ -54,66 +36,37 @@ function ProviderCard({ provider }: { provider: Provider }) {
   };
 
   return (
-    <Box
-      sx={{
-        border: '1px solid',
-        borderColor: 'rgba(15,17,26,0.08)',
-        borderRadius: 2,
-        p: 2.5,
-        display: 'grid',
-        gap: 1.2,
-        backgroundColor: '#fff',
-      }}
-    >
-      <Stack direction="row" spacing={1} alignItems="center">
-        <MailOutlineIcon color={connected ? 'success' : 'disabled'} />
-        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-          {label}
-        </Typography>
+    <div className="mini-card grid gap-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <strong>{label}</strong>
         {connected ? (
-          <Chip size="small" icon={<CheckCircleIcon color="success" />} label="Connected" color="success" variant="outlined" />
+          <span className="badge badge-done">Connected</span>
         ) : reconnectRequired ? (
-          <Chip size="small" label="Reconnect required" color="warning" variant="outlined" />
+          <span className="badge badge-accent">Reconnect required</span>
         ) : (
-          <Chip size="small" icon={<CancelIcon color="error" />} label="Not connected" color="default" variant="outlined" />
+          <span className="badge badge-danger">Not connected</span>
         )}
-      </Stack>
+      </div>
       {reconnectRequired && !connected && (
-        <Alert severity="warning" sx={{ py: 0 }}>
+        <div className="text-sm text-[#815224] bg-accent-soft p-2 rounded-[var(--radius-xs)]">
           Access expired. Reconnect to resume ingestion.
-        </Alert>
+        </div>
       )}
-      {account ? (
-        <Typography variant="body2" color="text.secondary">
-          Linked account: {account}
-        </Typography>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          Connect to pull emails (and calendar) into AI suggestions.
-        </Typography>
-      )}
-      <Stack direction="row" spacing={1}>
+      <p className="text-muted text-[13px]">
+        {account ? `Linked account: ${account}` : 'Connect to pull emails into AI suggestions.'}
+      </p>
+      <div className="flex gap-2">
         {connected ? (
-          <>
-            <Button variant="outlined" size="small" onClick={handleDisconnect} disabled={disconnectMutation.isPending}>
-              Disconnect
-            </Button>
-            {provider.provider === 'outlook' && (
-              <Chip
-                size="small"
-                icon={<CalendarMonthIcon sx={{ fontSize: 16 }} />}
-                label={ingestEnabled ? 'Ingest on' : 'Ingest off'}
-                variant="outlined"
-              />
-            )}
-          </>
+          <button className="btn btn-secondary btn-sm" onClick={handleDisconnect} disabled={disconnectMutation.isPending}>
+            Disconnect
+          </button>
         ) : (
-          <Button variant="contained" size="small" onClick={handleConnect}>
+          <button className="btn btn-primary btn-sm" onClick={handleConnect}>
             {reconnectRequired ? `Reconnect ${label}` : `Connect ${label}`}
-          </Button>
+          </button>
         )}
-      </Stack>
-    </Box>
+      </div>
+    </div>
   );
 }
 
@@ -133,24 +86,27 @@ export function IntegrationsDialog({ open, onClose }: Props) {
     ingestEnabled: false,
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Connect email providers</DialogTitle>
-      <DialogContent dividers>
+    <>
+      <div className="dialog-overlay" onClick={onClose} />
+      <div className="dialog-content panel p-6 grid gap-5">
+        <h2 className="text-lg font-extrabold">Connect email providers</h2>
         {isLoading ? (
-          <Stack alignItems="center" py={3}>
-            <CircularProgress />
-          </Stack>
+          <div className="text-center py-4">
+            <div className="w-6 h-6 mx-auto border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
         ) : (
-          <Stack spacing={2.5}>
+          <div className="grid gap-4">
             <ProviderCard provider={gmail} />
             <ProviderCard provider={outlook} />
-          </Stack>
+          </div>
         )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
-    </Dialog>
+        <div className="flex justify-end">
+          <button className="btn btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </>
   );
 }

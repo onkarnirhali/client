@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, Typography } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import { TodoFiltersDraft, TodoFilters, TodoList, TodoFormDialog } from '../components/todos';
 import { useSnackbar } from '../components/feedback/SnackbarProvider';
@@ -35,7 +34,6 @@ function toFilters(draft: TodoFiltersDraft): QueryFilters {
   return next;
 }
 
-// Task board: filters, CRUD dialogs, and AI suggestions bubble
 export function TodosPage() {
   const [filters, setFilters] = useState<QueryFilters>({});
   const [draft, setDraft] = useState<TodoFiltersDraft>(() => toDraft(filters));
@@ -132,129 +130,89 @@ export function TodosPage() {
     }
   };
 
+  const openTasks = items.filter((t) => t.status !== 'done').length;
+  const doneTasks = items.filter((t) => t.status === 'done').length;
+
   return (
-    <Stack spacing={3}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-        <div>
-          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Todos
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Your personal task dashboard.
-          </Typography>
+    <div className="grid gap-6">
+      {/* Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <article className="metric-card">
+          <div className="metric-label">Open tasks</div>
+          <div className="metric-value">{openTasks}</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">Completed</div>
+          <div className="metric-value">{doneTasks}</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">Total tasks</div>
+          <div className="metric-value">{items.length}</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">Filters active</div>
+          <div className="metric-value">{hasFilters ? 'Yes' : 'No'}</div>
+        </article>
+      </div>
+
+      {/* Filters */}
+      <TodoFilters
+        draft={draft}
+        onDraftChange={setDraft}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        busy={loading}
+      />
+
+      {/* Error */}
+      {error && (
+        <div className="panel p-4 border-danger/20 bg-danger-soft text-danger text-sm font-bold">
+          Failed to load todos. Try again later.
         </div>
-        <Button variant="contained" onClick={openCreate} disabled={formSubmitting} sx={{ display: { xs: 'inline-flex', sm: 'none' } }}>
-          New Todo
-        </Button>
-      </Box>
+      )}
 
-      {!loading && !error && items.length === 0 && !hasFilters ? (
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 3, sm: 5 },
-            display: 'grid',
-            gap: 3,
-            textAlign: 'center',
-            borderRadius: 3,
-            border: '1px solid',
-            borderColor: 'rgba(15,17,26,0.08)',
-            maxWidth: 840,
-            mx: 'auto',
-            backgroundColor: '#fff',
-          }}
-        >
-          <Box
-            sx={{
-              width: '100%',
-              maxWidth: 360,
-              mx: 'auto',
-              aspectRatio: '4 / 3',
-              backgroundImage: 'url(/assets/welcome-hero.png)',
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'center',
-              borderRadius: 2,
-            }}
-          />
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Welcome to Might as well
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 520, mx: 'auto' }}>
-            Your AI-assisted todo manager. Add a task to get started and see the magic happen.
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="center" spacing={1}>
-            <Button variant="contained" size="large" onClick={openCreate} disabled={formSubmitting}>
-              Add New Task
-            </Button>
-          </Stack>
-        </Paper>
-      ) : (
-        <>
-          <TodoFilters
-            draft={draft}
-            onDraftChange={setDraft}
-            onApply={handleApplyFilters}
-            onReset={handleResetFilters}
-            busy={loading}
-          />
-
-          {error && (
-            <Box sx={{ p: 2, borderRadius: 1, bgcolor: 'error.light', color: 'error.contrastText' }}>
-              <Typography variant="body2">Failed to load todos. Try again later.</Typography>
-            </Box>
-          )}
-
-          {!loading && items.length === 0 && hasFilters ? (
-            <Paper
-              elevation={0}
-              sx={{
-                p: { xs: 3, sm: 5 },
-                display: 'grid',
-                gap: 2,
-                textAlign: 'center',
-                borderRadius: 3,
-                border: '1px solid',
-                borderColor: 'rgba(15,17,26,0.08)',
-                maxWidth: 720,
-                mx: 'auto',
-                backgroundColor: '#fff',
-              }}
-            >
-              <Box
-                sx={{
-                  width: '100%',
-                  maxWidth: 320,
-                  mx: 'auto',
-                  aspectRatio: '4 / 3',
-                  backgroundImage: 'url(/assets/empty-state.png)',
-                  backgroundSize: 'cover',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'center',
-                  borderRadius: 2,
-                }}
-              />
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                No tasks match these filters
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Try adjusting your search, status, priority, or due date range.
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center">
-                <Button variant="outlined" onClick={handleResetFilters}>
-                  Clear Filters
-                </Button>
-                <Button variant="contained" onClick={openCreate}>
-                  New Todo
-                </Button>
-              </Stack>
-            </Paper>
+      {/* Board layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
+        <div>
+          {/* Empty welcome state */}
+          {!loading && !error && items.length === 0 && !hasFilters ? (
+            <div className="panel p-8 md:p-12 text-center grid gap-4 max-w-[840px] mx-auto">
+              <h2 className="title-md">Welcome to Might as well</h2>
+              <p className="text-muted text-[15px] max-w-[520px] mx-auto">
+                Your AI-assisted todo manager. Add a task to get started and see the magic happen.
+              </p>
+              <div className="flex justify-center">
+                <button className="btn btn-primary" onClick={openCreate} disabled={formSubmitting}>
+                  Add New Task
+                </button>
+              </div>
+            </div>
+          ) : !loading && items.length === 0 && hasFilters ? (
+            <div className="panel p-8 text-center grid gap-3 max-w-[720px] mx-auto">
+              <h3 className="text-lg font-bold">No tasks match these filters</h3>
+              <p className="text-muted text-sm">Try adjusting your search, status, priority, or due date range.</p>
+              <div className="flex justify-center gap-2">
+                <button className="btn btn-secondary" onClick={handleResetFilters}>Clear Filters</button>
+                <button className="btn btn-primary" onClick={openCreate}>New Todo</button>
+              </div>
+            </div>
           ) : (
             <TodoList items={items} loading={loading} onEdit={openEdit} onDelete={setConfirmTodo} />
           )}
-        </>
-      )}
+        </div>
 
+        {/* Side rail - AI suggestions */}
+        <aside className="hidden xl:block">
+          <AiSuggestionsWidget />
+        </aside>
+      </div>
+
+      {/* Mobile AI bubble */}
+      <div className="xl:hidden">
+        <AiSuggestionsWidget />
+      </div>
+
+      {/* Form dialog */}
       <TodoFormDialog
         open={formOpen}
         mode={formMode}
@@ -264,30 +222,26 @@ export function TodosPage() {
         submitting={formSubmitting}
       />
 
-      <Dialog open={Boolean(confirmTodo)} onClose={() => setConfirmTodo(null)}>
-        <DialogTitle sx={{ textAlign: 'center', fontWeight: 700, fontSize: '1.25rem' }}>Delete Task?</DialogTitle>
-        <DialogContent sx={{ textAlign: 'center', px: 4 }}>
-          <Typography color="text.secondary" sx={{ mt: 1 }}>
-            Are you sure you want to delete “{confirmTodo?.title}”? This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
-          <Button onClick={() => setConfirmTodo(null)} disabled={deleteMutation.isPending}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDelete}
-            color="error"
-            variant="contained"
-            disabled={deleteMutation.isPending}
-            sx={{ minWidth: 120 }}
-          >
-            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <AiSuggestionsWidget />
-    </Stack>
+      {/* Delete confirm dialog */}
+      {confirmTodo && (
+        <>
+          <div className="dialog-overlay" onClick={() => setConfirmTodo(null)} />
+          <div className="dialog-content panel p-6 text-center grid gap-4">
+            <h3 className="text-lg font-extrabold">Delete Task?</h3>
+            <p className="text-muted text-sm">
+              Are you sure you want to delete &quot;{confirmTodo.title}&quot;? This action cannot be undone.
+            </p>
+            <div className="flex justify-center gap-3">
+              <button className="btn btn-secondary" onClick={() => setConfirmTodo(null)} disabled={deleteMutation.isPending}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={handleDelete} disabled={deleteMutation.isPending}>
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }

@@ -1,28 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  IconButton,
-  Paper,
-  Stack,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from '@mui/material';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import LockIcon from '@mui/icons-material/Lock';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import GridViewIcon from '@mui/icons-material/GridView';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import { HttpError } from '../api/http';
 import { useSnackbar } from '../components/feedback/SnackbarProvider';
@@ -47,7 +23,7 @@ export function NotesPage() {
   const { notify } = useSnackbar();
   const [query, setQuery] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<NoteViewMode>('list');
+  const [viewMode, setViewMode] = useState<NoteViewMode>('grid');
   const [viewModeLoaded, setViewModeLoaded] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const listQuery = useMemo(() => ({ q: query.trim(), limit: 200, offset: 0 }), [query]);
@@ -92,158 +68,166 @@ export function NotesPage() {
     }
   };
 
+  const protectedCount = items.filter((n) => n.isPasswordProtected).length;
+  const linkedCount = items.filter((n) => n.linkedTaskCount > 0).length;
+
   return (
-    <Stack spacing={3}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-        <Stack spacing={0.5}>
-          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Notes
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Create and manage your personal notes.
-          </Typography>
-        </Stack>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/app')}>
-            Back to Dashboard
-          </Button>
-          <Button variant="contained" onClick={() => setCreateOpen(true)}>
-            Add New Note
-          </Button>
-        </Stack>
-      </Box>
+    <div className="grid gap-6">
+      {/* Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <article className="metric-card">
+          <div className="metric-label">Total notes</div>
+          <div className="metric-value">{items.length}</div>
+          <div className="metric-trend">{linkedCount} linked to tasks</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">Protected</div>
+          <div className="metric-value">{protectedCount}</div>
+          <div className="metric-trend">Lock state exposed on cards</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">View mode</div>
+          <div className="metric-value capitalize">{viewMode}</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">Search</div>
+          <div className="metric-value">{query ? 'Active' : 'None'}</div>
+        </article>
+      </div>
 
-      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'rgba(15,17,26,0.08)', borderRadius: 3, p: 2 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between">
-          <TextField
-            label="Search notes"
+      {/* Search + controls */}
+      <div className="panel p-4 flex items-center gap-3 flex-wrap">
+        <div className="flex-1 min-w-[200px]">
+          <input
+            className="input"
+            type="text"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            sx={{ minWidth: { md: 320 } }}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search notes..."
           />
-          <ToggleButtonGroup
-            exclusive
-            size="small"
-            value={viewMode}
-            onChange={(_, next) => {
-              if (next) handleChangeView(next as NoteViewMode);
-            }}
+        </div>
+        <div className="flex gap-1.5">
+          <button
+            className={`tab-btn ${viewMode === 'list' ? 'active' : ''}`}
+            onClick={() => handleChangeView('list')}
           >
-            <ToggleButton value="list">
-              <ViewListIcon fontSize="small" />
-            </ToggleButton>
-            <ToggleButton value="grid">
-              <GridViewIcon fontSize="small" />
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Stack>
-      </Paper>
+            List
+          </button>
+          <button
+            className={`tab-btn ${viewMode === 'grid' ? 'active' : ''}`}
+            onClick={() => handleChangeView('grid')}
+          >
+            Grid
+          </button>
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={() => setCreateOpen(true)}>New note</button>
+      </div>
 
+      {/* Error */}
       {error && (
-        <Paper elevation={0} sx={{ p: 2, bgcolor: 'error.light', color: 'error.contrastText', borderRadius: 2 }}>
+        <div className="panel p-4 border-danger/20 bg-danger-soft text-danger text-sm font-bold">
           Failed to load notes.
-        </Paper>
+        </div>
       )}
 
+      {/* Empty state */}
       {!isLoading && !error && items.length === 0 && (
-        <Paper elevation={0} sx={{ p: 5, textAlign: 'center', border: '1px solid', borderColor: 'rgba(15,17,26,0.08)', borderRadius: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            No notes yet
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Create your first note to get started.
-          </Typography>
-        </Paper>
+        <div className="panel p-8 text-center grid gap-3">
+          <h3 className="text-lg font-bold">No notes yet</h3>
+          <p className="text-muted text-sm">Create your first note to get started.</p>
+          <div className="flex justify-center">
+            <button className="btn btn-primary" onClick={() => setCreateOpen(true)}>Add New Note</button>
+          </div>
+        </div>
       )}
 
-      {!isLoading && items.length > 0 && viewMode === 'list' && (
-        <Stack spacing={1.25}>
-          {items.map((note) => (
-            <Paper
-              key={note.id}
-              elevation={0}
-              sx={{
-                p: 1.5,
-                border: '1px solid',
-                borderColor: 'rgba(15,17,26,0.08)',
-                borderRadius: 2,
-              }}
-            >
-              <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
-                <CardActionArea
-                  onClick={() => navigate(`/app/notes/${note.id}`)}
-                  sx={{ borderRadius: 1, p: 1, flex: 1, textAlign: 'left' }}
-                >
-                  <Stack spacing={0.5}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      {note.isPasswordProtected && <LockIcon fontSize="small" color="action" />}
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        {note.title}
-                      </Typography>
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary">
-                      {note.isPasswordProtected ? 'Protected note preview hidden' : note.preview || 'No preview available'}
-                    </Typography>
-                  </Stack>
-                </CardActionArea>
-                <IconButton
-                  aria-label="Delete note"
-                  color="error"
-                  onClick={() => setPendingDelete({ note, force: false })}
-                >
-                  <DeleteOutlineIcon />
-                </IconButton>
-              </Stack>
-            </Paper>
-          ))}
-        </Stack>
-      )}
-
-      {!isLoading && items.length > 0 && viewMode === 'grid' && (
-        <Grid container spacing={2}>
-          {items.map((note) => (
-            <Grid key={note.id} item xs={12} sm={6} lg={4}>
-              <Card
-                elevation={0}
-                sx={{ border: '1px solid', borderColor: 'rgba(15,17,26,0.08)', borderRadius: 3, height: '100%' }}
-              >
-                <CardActionArea
-                  onClick={() => navigate(`/app/notes/${note.id}`)}
-                  sx={{ height: '100%', display: 'flex', alignItems: 'stretch' }}
-                >
-                  <CardContent sx={{ width: '100%', display: 'grid', gap: 1 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="start">
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        {note.isPasswordProtected && <LockIcon fontSize="small" color="action" />}
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                          {note.title}
-                        </Typography>
-                      </Stack>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setPendingDelete({ note, force: false });
-                        }}
+      {/* Note layout: grid + side rail */}
+      {!isLoading && items.length > 0 && (
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
+          <div className="panel p-5">
+            {viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {items.map((note) => (
+                  <article
+                    key={note.id}
+                    className="note-card"
+                    onClick={() => navigate(`/app/notes/${note.id}`)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="grid gap-1 flex-1 min-w-0">
+                        <div className="font-bold text-sm flex items-center gap-1.5">
+                          {note.isPasswordProtected && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-danger shrink-0"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                          )}
+                          <span className="truncate">{note.title}</span>
+                        </div>
+                        <p className="text-muted text-[13px] line-clamp-2">
+                          {note.isPasswordProtected ? 'Protected note' : note.preview || 'No preview'}
+                        </p>
+                      </div>
+                      {note.isPasswordProtected ? (
+                        <span className="badge badge-danger shrink-0">Locked</span>
+                      ) : note.linkedTaskCount > 0 ? (
+                        <span className="badge badge-primary shrink-0">{note.linkedTaskCount} {note.linkedTaskCount === 1 ? 'task' : 'tasks'}</span>
+                      ) : null}
+                    </div>
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-muted text-xs">Tasks: {note.linkedTaskCount}</span>
+                      <button
+                        className="btn btn-danger btn-sm text-xs"
+                        onClick={(e) => { e.stopPropagation(); setPendingDelete({ note, force: false }); }}
                       >
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary">
-                      {note.isPasswordProtected ? 'Protected note preview hidden' : note.preview || 'No preview available'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Linked tasks: {note.linkedTaskCount}
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {items.map((note) => (
+                  <div
+                    key={note.id}
+                    className="flex items-center gap-3 p-3 rounded-[var(--radius-sm)] hover:bg-white/60 cursor-pointer transition-colors"
+                    onClick={() => navigate(`/app/notes/${note.id}`)}
+                  >
+                    <div className="flex-1 min-w-0 grid gap-0.5">
+                      <div className="font-bold text-sm flex items-center gap-1.5">
+                        {note.isPasswordProtected && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-danger shrink-0"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                        )}
+                        <span className="truncate">{note.title}</span>
+                      </div>
+                      <p className="text-muted text-[13px] truncate">
+                        {note.isPasswordProtected ? 'Protected note' : note.preview || 'No preview'}
+                      </p>
+                    </div>
+                    <span className="text-muted text-xs shrink-0">Tasks: {note.linkedTaskCount}</span>
+                    <button
+                      className="btn btn-danger btn-sm text-xs shrink-0"
+                      onClick={(e) => { e.stopPropagation(); setPendingDelete({ note, force: false }); }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Side rail */}
+          <aside className="hidden xl:grid gap-4 content-start">
+            <section className="panel p-5 grid gap-4">
+              <span className="eyebrow"><span className="eyebrow-dot" />quick capture</span>
+              <h3 className="text-base font-extrabold">Capture first, organize second.</h3>
+              <button className="btn btn-primary w-full" onClick={() => setCreateOpen(true)}>Create note</button>
+              <button className="btn btn-secondary w-full" onClick={() => navigate('/app')}>Back to board</button>
+            </section>
+          </aside>
+        </div>
       )}
 
+      {/* Create dialog */}
       <NoteEditorDialog
         open={createOpen}
         title="Add New Note"
@@ -257,24 +241,30 @@ export function NotesPage() {
         saveLabel="Save"
       />
 
-      <Dialog open={Boolean(pendingDelete)} onClose={() => setPendingDelete(null)}>
-        <DialogTitle>{pendingDelete?.force ? 'Delete linked note?' : 'Delete note?'}</DialogTitle>
-        <DialogContent>
-          <Typography color="text.secondary">
-            {pendingDelete?.force
-              ? `This note is linked to ${pendingDelete.linkCount || 0} task(s). Deleting it will unlink all tasks.`
-              : 'This action cannot be undone.'}
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPendingDelete(null)} disabled={deleteMutation.isPending}>
-            Cancel
-          </Button>
-          <Button variant="contained" color="error" onClick={handleDelete} disabled={deleteMutation.isPending}>
-            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Stack>
+      {/* Delete confirm dialog */}
+      {pendingDelete && (
+        <>
+          <div className="dialog-overlay" onClick={() => setPendingDelete(null)} />
+          <div className="dialog-content panel p-6 grid gap-4">
+            <h3 className="text-lg font-extrabold">
+              {pendingDelete.force ? 'Delete linked note?' : 'Delete note?'}
+            </h3>
+            <p className="text-muted text-sm">
+              {pendingDelete.force
+                ? `This note is linked to ${pendingDelete.linkCount || 0} task(s). Deleting it will unlink all tasks.`
+                : 'This action cannot be undone.'}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button className="btn btn-secondary" onClick={() => setPendingDelete(null)} disabled={deleteMutation.isPending}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={handleDelete} disabled={deleteMutation.isPending}>
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }

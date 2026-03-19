@@ -1,33 +1,4 @@
 import { useEffect, useState } from 'react';
-import {
-  Avatar,
-  Badge,
-  Box,
-  Button,
-  CircularProgress,
-  Divider,
-  Drawer,
-  Fade,
-  IconButton,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Paper,
-  Popper,
-  Stack,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
-import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
-import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
-import ClearAllIcon from '@mui/icons-material/ClearAll';
 import { AiSuggestion } from '../../api/ai';
 import {
   useAcceptSuggestion,
@@ -40,14 +11,7 @@ import {
 } from './hooks';
 import { useSnackbar } from '../../components/feedback/SnackbarProvider';
 
-// Floating AI suggestions bubble + desktop popper / mobile sheet: list, refresh, add/dismiss/bulk actions
-type Props = {
-  anchor?: 'bottom-right';
-};
-
-export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+export function AiSuggestionsWidget() {
   const { notify } = useSnackbar();
   const { data, isLoading, refetch, isFetching, error } = useAiSuggestions();
   const refreshMutation = useRefreshAiSuggestions();
@@ -56,8 +20,7 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   const bulkDismissMutation = useBulkDismiss();
   const addMutation = useAddTodoFromSuggestion();
 
-  const [open, setOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [refreshHint, setRefreshHint] = useState<string | null>(null);
 
   const suggestions = data?.suggestions || [];
@@ -65,25 +28,13 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
   const count = suggestions.length;
   const hasSuggestions = count > 0;
 
-  useSuggestionsPolling({
-    enabled: false,
-    hasSuggestions,
-    refetch,
-  });
+  useSuggestionsPolling({ enabled: false, hasSuggestions, refetch });
 
   useEffect(() => {
     if (error) {
       notify(error instanceof Error ? error.message : 'Failed to load AI suggestions', 'error');
-      console.error('AI suggestions error', error);
     }
   }, [error, notify]);
-
-  const handleToggle = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-    setOpen((prev) => !prev);
-  };
-
-  const handleClose = () => setOpen(false);
 
   const handleRefresh = async () => {
     try {
@@ -119,13 +70,9 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
           message = 'Suggestions refreshed with a time limit.';
         }
       }
-      notify(
-        message,
-        'info'
-      );
+      notify(message, 'info');
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Failed to refresh suggestions', 'error');
-      console.error('Refresh suggestions failed', err);
     }
   };
 
@@ -173,295 +120,143 @@ export function AiSuggestionsWidget({ anchor = 'bottom-right' }: Props) {
     }
   };
 
-  const content = (
-    <Paper
-      elevation={3}
-      sx={{
-        width: isMobile ? '100%' : 380,
-        maxHeight: isMobile ? '70vh' : 520,
-        borderRadius: isMobile ? '18px 18px 0 0' : 3,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        border: '1px solid rgba(15,17,26,0.08)',
-        boxShadow: '0 12px 24px rgba(15,17,26,0.1)',
-      }}
-    >
-      <Stack sx={{ p: 2, borderBottom: '1px solid', borderColor: 'rgba(15,17,26,0.08)' }} spacing={1}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Avatar
-              variant="rounded"
-              sx={{
-                width: 32,
-                height: 32,
-                bgcolor: 'primary.light',
-                color: 'primary.main',
-                fontSize: 18,
-              }}
-            >
-              <AutoAwesomeIcon fontSize="inherit" />
-            </Avatar>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
-              AI Suggestions ({count})
-            </Typography>
-          </Stack>
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <Tooltip title="Refresh">
-              <span>
-                <IconButton size="small" onClick={handleRefresh} disabled={refreshMutation.isPending || isFetching}>
-                  <RefreshIcon fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <IconButton size="small" onClick={handleClose} aria-label="Close suggestions">
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </Stack>
-        </Stack>
+  const panelContent = (
+    <div className="grid gap-4">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="w-8 h-8 rounded-[12px] inline-flex items-center justify-center bg-primary-soft text-primary-strong text-sm font-extrabold">AI</span>
+          <span className="font-extrabold text-sm">Suggestions ({count})</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshMutation.isPending || isFetching}
+            className="chip cursor-pointer hover:bg-white/90 text-xs"
+            title="Refresh"
+          >
+            Refresh
+          </button>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="xl:hidden chip cursor-pointer hover:bg-white/90 text-xs"
+          >
+            Close
+          </button>
+        </div>
+      </div>
 
-        <Stack direction="row" spacing={1} justifyContent="flex-start">
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<PlaylistAddIcon />}
-            onClick={handleAddAll}
-            disabled={addMutation.isPending || acceptMutation.isPending}
-            sx={{
-              textTransform: 'none',
-              px: 2.5,
-              borderRadius: 999,
-              backgroundColor: '#e7edff',
-              color: 'primary.main',
-              boxShadow: 'inset 0 -1px 0 rgba(15,17,26,0.06)',
-              '&:hover': { backgroundColor: '#d9e4ff' },
-            }}
-          >
-            Add All
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            color="inherit"
-            startIcon={<ClearAllIcon />}
-            onClick={handleDismissAll}
-            disabled={bulkDismissMutation.isPending}
-            sx={{
-              textTransform: 'none',
-              px: 2.5,
-              borderRadius: 999,
-              bgcolor: 'rgba(15,17,26,0.04)',
-              borderColor: 'rgba(15,17,26,0.08)',
-              color: 'text.primary',
-              '&:hover': { bgcolor: 'rgba(15,17,26,0.08)' },
-            }}
-          >
-            Dismiss All
-          </Button>
-        </Stack>
-        {refreshHint ? (
-          <Typography variant="caption" color="text.secondary">
-            {refreshHint}
-          </Typography>
-        ) : null}
-      </Stack>
+      <div className="flex gap-2">
+        <button
+          className="btn btn-soft btn-sm text-xs"
+          onClick={handleAddAll}
+          disabled={addMutation.isPending || acceptMutation.isPending || !hasSuggestions}
+        >
+          Add All
+        </button>
+        <button
+          className="btn btn-ghost btn-sm text-xs"
+          onClick={handleDismissAll}
+          disabled={bulkDismissMutation.isPending || !hasSuggestions}
+        >
+          Dismiss All
+        </button>
+      </div>
+
+      {refreshHint && <p className="text-muted text-xs">{refreshHint}</p>}
 
       {(isLoading || isFetching || refreshMutation.isPending) && (
-        <Stack alignItems="center" spacing={1.5} sx={{ py: 3 }}>
-          <CircularProgress size={24} />
-          <Typography variant="body2" color="text.secondary">
-            Loading suggestions...
-          </Typography>
-        </Stack>
+        <div className="text-center py-4">
+          <div className="w-6 h-6 mx-auto border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted text-sm mt-2">Loading suggestions...</p>
+        </div>
       )}
 
       {!isLoading && !isFetching && suggestions.length === 0 && (
-        <Stack alignItems="center" spacing={1} sx={{ py: 4, px: 3 }}>
-          <Typography variant="body2" color="text.secondary">
+        <div className="text-center py-4">
+          <p className="text-muted text-sm">
             {context?.reasonCode === 'INSUFFICIENT_HISTORY'
               ? 'Create tasks to train AI suggestions or connect Gmail/Outlook.'
               : context?.reasonCode === 'NO_PROVIDER_CONNECTED'
                 ? 'Connect Gmail/Outlook to enable email-based suggestions.'
                 : 'No suggestions right now'}
-          </Typography>
-          <Button size="small" variant="outlined" onClick={handleRefresh} startIcon={<RefreshIcon />}>
+          </p>
+          <button className="btn btn-secondary btn-sm mt-3 text-xs" onClick={handleRefresh}>
             Refresh
-          </Button>
-        </Stack>
+          </button>
+        </div>
       )}
 
       {suggestions.length > 0 && (
-        <>
-          <Divider />
-          <Box sx={{ flex: 1, overflowY: 'auto' }}>
-            <List dense disablePadding>
-              {suggestions.map((s) => {
-                const sourceLabel = typeof s.metadata?.sourceLabel === 'string' ? s.metadata.sourceLabel : '';
-                return (
-                  <ListItem
-                    key={s.id}
-                    alignItems="flex-start"
-                    sx={{
-                      px: 2,
-                      py: 1.5,
-                      borderBottom: '1px solid rgba(15,17,26,0.08)',
-                      // Keep action buttons aligned near metadata lines instead of vertically centered
-                      '& .MuiListItemSecondaryAction-root': {
-                        top: 'auto',
-                        bottom: 12,
-                        transform: 'none',
-                      },
-                      '&:last-of-type': { borderBottom: 'none' },
-                    }}
-                    secondaryAction={
-                      <Stack direction="row" spacing={0.5}>
-                        <Tooltip title="Add to Todos">
-                          <span>
-                            <IconButton
-                              edge="end"
-                              size="small"
-                              onClick={() => handleAdd(s)}
-                              disabled={addMutation.isPending}
-                              aria-label="Add suggestion to todos"
-                              sx={{
-                                bgcolor: 'rgba(76,106,255,0.08)',
-                                '&:hover': { bgcolor: 'rgba(76,106,255,0.14)' },
-                                borderRadius: 1.5,
-                              }}
-                            >
-                              <AddIcon fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                        <Tooltip title="Dismiss">
-                          <span>
-                            <IconButton
-                              edge="end"
-                              size="small"
-                              onClick={() => handleDismiss(s)}
-                              disabled={dismissMutation.isPending}
-                              aria-label="Dismiss suggestion"
-                              sx={{
-                                bgcolor: 'rgba(15,17,26,0.05)',
-                                '&:hover': { bgcolor: 'rgba(15,17,26,0.09)' },
-                                borderRadius: 1.5,
-                              }}
-                            >
-                              <CloseIcon fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                      </Stack>
-                    }
+        <div className="grid gap-3">
+          {suggestions.map((s) => {
+            const sourceLabel = typeof s.metadata?.sourceLabel === 'string' ? s.metadata.sourceLabel : '';
+            return (
+              <article key={s.id} className="mini-card grid gap-2">
+                <strong className="text-sm leading-snug">{s.title}</strong>
+                {s.detail && <p className="text-muted text-[13px] line-clamp-3">{s.detail}</p>}
+                {sourceLabel && <span className="text-muted text-xs">Source: {sourceLabel}</span>}
+                <div className="flex gap-1.5 mt-1">
+                  <button
+                    className="btn btn-soft btn-sm text-xs flex-1"
+                    onClick={() => handleAdd(s)}
+                    disabled={addMutation.isPending}
                   >
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.dark' }}>
-                        <TipsAndUpdatesIcon fontSize="small" />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
-                          {s.title}
-                        </Typography>
-                      }
-                      secondary={
-                        <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                          {s.detail && (
-                            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
-                              {s.detail}
-                            </Typography>
-                          )}
-                          {sourceLabel ? (
-                            <Typography variant="caption" color="text.secondary">
-                              Source: {sourceLabel}
-                            </Typography>
-                          ) : null}
-                        </Stack>
-                      }
-                    />
-                  </ListItem>
-                );
-              })}
-            </List>
-          </Box>
-        </>
+                    Add
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-sm text-xs flex-1"
+                    onClick={() => handleDismiss(s)}
+                    disabled={dismissMutation.isPending}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       )}
-    </Paper>
+    </div>
   );
-
-  const bubble = (
-    <Box
-      sx={{
-        position: anchor === 'bottom-right' ? 'fixed' : 'relative',
-        bottom: anchor === 'bottom-right' ? 24 : undefined,
-        right: anchor === 'bottom-right' ? 24 : undefined,
-        zIndex: 10,
-      }}
-    >
-      <Tooltip title={hasSuggestions ? 'AI Suggestions' : 'No suggestions'}>
-        <Badge
-          color={hasSuggestions ? 'primary' : 'default'}
-          overlap="circular"
-          badgeContent={hasSuggestions ? count : 0}
-          invisible={!hasSuggestions}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <IconButton
-            aria-label="Open AI suggestions"
-            onClick={handleToggle}
-            color="primary"
-            sx={{
-              width: 56,
-              height: 56,
-              boxShadow: '0 10px 24px rgba(55,78,255,0.3)',
-              background: 'linear-gradient(135deg, #d0d9fa 0%, #6d8dff 100%)',
-              color: '#fff',
-              '&:hover': { background: 'linear-gradient(135deg, #3f5de6 0%, #5f7dff 100%)' },
-            }}
-          >
-            <AutoAwesomeIcon />
-          </IconButton>
-        </Badge>
-      </Tooltip>
-    </Box>
-  );
-
-  if (isMobile) {
-    return (
-      <>
-        {bubble}
-        <Drawer
-          anchor="bottom"
-          open={open}
-          onClose={handleClose}
-          PaperProps={{ sx: { borderTopLeftRadius: 18, borderTopRightRadius: 18, height: '65vh' } }}
-        >
-          {content}
-        </Drawer>
-      </>
-    );
-  }
 
   return (
     <>
-      {bubble}
-      <Popper
-        open={open}
-        anchorEl={anchorEl}
-        placement="top-end"
-        transition
-        modifiers={[
-          { name: 'offset', options: { offset: [0, 12] } },
-          { name: 'preventOverflow', options: { padding: 8 } },
-        ]}
-      >
-        {({ TransitionProps }) => (
-          <Fade {...TransitionProps} timeout={120}>
-            <Box sx={{ zIndex: 1300 }}>{content}</Box>
-          </Fade>
+      {/* Desktop: inline panel */}
+      <div className="hidden xl:block">
+        <div className="panel p-5 sticky top-5">
+          <div className="grid gap-2 mb-4">
+            <span className="eyebrow"><span className="eyebrow-dot" />ai suggestions</span>
+          </div>
+          {panelContent}
+        </div>
+      </div>
+
+      {/* Mobile: floating bubble */}
+      <div className="xl:hidden">
+        <div className="fixed bottom-20 right-4 z-[10]">
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="w-14 h-14 rounded-full bg-linear-to-br from-[#d0d9fa] to-[#6d8dff] text-white shadow-[0_10px_24px_rgba(55,78,255,0.3)] inline-flex items-center justify-center cursor-pointer hover:shadow-[0_14px_28px_rgba(55,78,255,0.4)] transition-shadow relative"
+            aria-label="Open AI suggestions"
+          >
+            <span className="text-lg font-extrabold">AI</span>
+            {hasSuggestions && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-[10px] font-extrabold inline-flex items-center justify-center">
+                {count}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {mobileOpen && (
+          <>
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-[4px] z-[11]" onClick={() => setMobileOpen(false)} />
+            <div className="fixed bottom-0 left-0 right-0 z-[12] panel rounded-t-[22px] p-5 max-h-[70vh] overflow-y-auto">
+              {panelContent}
+            </div>
+          </>
         )}
-      </Popper>
+      </div>
     </>
   );
 }

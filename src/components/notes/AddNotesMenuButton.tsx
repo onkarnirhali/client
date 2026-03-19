@@ -1,6 +1,4 @@
-import { MouseEvent, useState } from 'react';
-import { Button, Menu, MenuItem } from '@mui/material';
-import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import { useState } from 'react';
 
 type Props = {
   disabled?: boolean;
@@ -9,48 +7,37 @@ type Props = {
 };
 
 export function AddNotesMenuButton({ disabled = false, onNewNote, onLinkExisting }: Props) {
-  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-
-  const handleOpen = (event: MouseEvent<HTMLButtonElement>) => {
-    setAnchor(event.currentTarget);
-  };
-
-  const handleClose = () => setAnchor(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <>
-      <Button
-        variant="outlined"
-        startIcon={<NoteAddIcon />}
-        onClick={handleOpen}
+    <div className="relative inline-block">
+      <button
+        className="btn btn-secondary btn-sm"
+        onClick={() => setMenuOpen(!menuOpen)}
         disabled={disabled}
       >
         Add Notes
-      </Button>
-      <Menu
-        anchorEl={anchor}
-        open={Boolean(anchor)}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        <MenuItem
-          onClick={() => {
-            handleClose();
-            onNewNote();
-          }}
-        >
-          New Note
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleClose();
-            onLinkExisting();
-          }}
-        >
-          Link Existing Notes
-        </MenuItem>
-      </Menu>
-    </>
+      </button>
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+          <div className="absolute left-0 top-full mt-1 w-48 panel p-1.5 z-50 grid gap-0.5">
+            <button
+              className="text-left px-3 py-2 rounded-[var(--radius-xs)] hover:bg-white/60 text-sm font-bold cursor-pointer"
+              onClick={() => { setMenuOpen(false); onNewNote(); }}
+            >
+              New Note
+            </button>
+            <button
+              className="text-left px-3 py-2 rounded-[var(--radius-xs)] hover:bg-white/60 text-sm font-bold cursor-pointer"
+              onClick={() => { setMenuOpen(false); onLinkExisting(); }}
+            >
+              Link Existing Notes
+            </button>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 

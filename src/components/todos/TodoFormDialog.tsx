@@ -1,19 +1,4 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { Todo, TodoInput } from '../../features/todos';
 import { rephraseDescription } from '../../api/ai';
 import { HttpError } from '../../api/http';
@@ -90,7 +75,7 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
     }
   }, [open, initial]);
 
-  const handleChange = (field: keyof FormState) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (field: keyof FormState) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
   };
 
@@ -125,7 +110,7 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
     try {
       const rephrased = await rephraseDescription(current);
       setForm((prev) => ({ ...prev, description: rephrased }));
-      notify('Description polished with AI ✨', 'success');
+      notify('Description polished with AI', 'success');
     } catch (err) {
       const message = err instanceof HttpError ? err.message : 'Unable to rephrase description right now.';
       notify(message, 'error');
@@ -149,39 +134,49 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
     })),
   ];
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} sx={{borderRadius: 0.5}} onClose={submitting ? undefined : onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{mode === 'create' ? 'New Todo' : 'Edit Todo'}</DialogTitle>
-      <DialogContent dividers>
-        <Box sx={{ display: 'grid', gap: 2, mt: 1, borderRadius: 0.5 }}>
-          <TextField
-            label="Title"
-            value={form.title}
-            onChange={handleChange('title')}
-            error={Boolean(errors.title)}
-            helperText={errors.title}
-            autoFocus
-          />
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-            <TextField
-              label="Description"
-              value={form.description}
-              onChange={handleChange('description')}
-              multiline
-              minRows={3}
-              sx={{ flex: 1, borderRadius: 0.5 }}
+    <>
+      <div className="dialog-overlay" onClick={submitting ? undefined : onClose} />
+      <div className="dialog-content panel p-6 grid gap-5">
+        <h2 className="text-lg font-extrabold">{mode === 'create' ? 'New Todo' : 'Edit Todo'}</h2>
+
+        <div className="grid gap-4">
+          <div className="grid gap-1.5">
+            <label className="field-label">Title</label>
+            <input
+              className={`input ${errors.title ? 'border-danger' : ''}`}
+              type="text"
+              value={form.title}
+              onChange={handleChange('title')}
+              autoFocus
+              placeholder="Task title"
             />
-            <Button
-              variant="outlined"
-              startIcon={<AutoAwesomeIcon fontSize="small" />}
-              onClick={handleRephrase}
-              disabled={aiLoading || submitting}
-              sx={{ alignSelf: 'stretch', whiteSpace: 'nowrap',borderRadius: 0.5 }}
-            >
-              {aiLoading ? 'Polishing...' : 'Polish with AI'}
-            </Button>
-          </Box>
-          <Stack spacing={1}>
+            {errors.title && <span className="text-danger text-xs">{errors.title}</span>}
+          </div>
+
+          <div className="grid gap-1.5">
+            <label className="field-label">Description</label>
+            <div className="flex gap-2 items-stretch">
+              <textarea
+                className="textarea-field flex-1"
+                value={form.description}
+                onChange={handleChange('description')}
+                placeholder="Task description..."
+                rows={3}
+              />
+              <button
+                className="btn btn-secondary text-xs whitespace-nowrap self-stretch"
+                onClick={handleRephrase}
+                disabled={aiLoading || submitting}
+              >
+                {aiLoading ? 'Polishing...' : 'Polish with AI'}
+              </button>
+            </div>
+          </div>
+
+          <div>
             <AddNotesMenuButton
               disabled={submitting}
               onNewNote={() => setNewNoteDialogOpen(true)}
@@ -199,79 +194,66 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
                 setNewNoteDrafts((prev) => prev.filter((item) => item.key !== key));
               }}
             />
-          </Stack>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Status
-              </Typography>
-              <RadioGroup
-                value={form.status}
-                onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as UiStatus }))}
-              >
-                <FormControlLabel value="To Do" control={<Radio />} label="To Do" />
-                <FormControlLabel value="In Progress" control={<Radio />} label="In Progress" />
-                <FormControlLabel value="Done" control={<Radio />} label="Done" />
-              </RadioGroup>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Priority
-              </Typography>
-              <Box
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 0.5,
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3,1fr)',
-                  gap: 0.5,
-                  p: 0.5,
-                }}
-              >
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <span className="field-label">Status</span>
+              <div className="grid gap-1.5">
+                {(['To Do', 'In Progress', 'Done'] as UiStatus[]).map((s) => (
+                  <label key={s} className="flex items-center gap-2 cursor-pointer text-sm">
+                    <input
+                      type="radio"
+                      name="status"
+                      value={s}
+                      checked={form.status === s}
+                      onChange={() => setForm((prev) => ({ ...prev, status: s }))}
+                      className="accent-primary"
+                    />
+                    {s}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2 content-start">
+              <span className="field-label">Priority</span>
+              <div className="grid grid-cols-3 gap-1 p-1 rounded-[var(--radius-sm)] border border-border">
                 {(['Low', 'Normal', 'High'] as UiPriority[]).map((option) => {
                   const selected = form.priority === option;
                   return (
-                    <Button
+                    <button
                       key={option}
-                      variant={selected ? 'contained' : 'text'}
+                      type="button"
                       onClick={() => setForm((prev) => ({ ...prev, priority: option }))}
-                      sx={{
-                        borderRadius: 0.5,
-                        bgcolor: selected ? 'primary.light' : 'transparent',
-                        color: selected ? 'primary.contrastText' : 'text.secondary',
-                        '&:hover': { bgcolor: selected ? 'primary.main' : 'action.hover' },
-                      }}
+                      className={`min-h-[36px] rounded-[var(--radius-xs)] text-sm font-bold transition-colors cursor-pointer ${
+                        selected
+                          ? 'bg-primary-soft text-primary-strong'
+                          : 'text-muted hover:bg-white/60'
+                      }`}
                     >
                       {option}
-                    </Button>
+                    </button>
                   );
                 })}
-              </Box>
-            </Box>
-          </Box>
-          <TextField
-            label="Due Date"
-            type="date"
-            value={form.dueDate}
-            onChange={handleChange('dueDate')}
-            InputLabelProps={{ shrink: true }}
-          />
-        </Box>
-        {submitting && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Saving...
-          </Typography>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} sx={{ borderRadius: 0.5 }} disabled={submitting}>
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit} sx={{ borderRadius: 0.5 }} variant="contained" disabled={submitting}>
-          {mode === 'create' ? 'Create' : 'Save'}
-        </Button>
-      </DialogActions>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            <label className="field-label">Due Date</label>
+            <input className="input" type="date" value={form.dueDate} onChange={handleChange('dueDate')} />
+          </div>
+        </div>
+
+        {submitting && <p className="text-muted text-sm">Saving...</p>}
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button className="btn btn-secondary" onClick={onClose} disabled={submitting}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
+            {mode === 'create' ? 'Create' : 'Save'}
+          </button>
+        </div>
+      </div>
 
       <NoteEditorDialog
         open={newNoteDialogOpen}
@@ -304,6 +286,6 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
           notify('Notes linked to task draft', 'success');
         }}
       />
-    </Dialog>
+    </>
   );
 }

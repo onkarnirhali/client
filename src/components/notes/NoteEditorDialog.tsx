@@ -1,17 +1,4 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControlLabel,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
 import { EMPTY_NOTE_CONTENT, NoteEditor } from './NoteEditor';
 import { NoteContent, NoteInput } from '../../features/notes';
 
@@ -80,68 +67,74 @@ export function NoteEditorDialog({
     });
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onClose={submitting ? undefined : onClose} fullWidth maxWidth="md">
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent dividers>
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField
-            label="Title"
-            value={noteTitle}
-            onChange={(event) => setNoteTitle(event.target.value)}
-            autoFocus
-            error={Boolean(error && !noteTitle.trim())}
-          />
-          <NoteEditor value={content} onChange={setContent} editable />
-          <Box>
-            <FormControlLabel
-              control={(
-                <Checkbox
-                  checked={passwordProtected}
-                  onChange={(event) => setPasswordProtected(event.target.checked)}
-                />
-              )}
-              label="Password Protect"
+    <>
+      <div className="dialog-overlay" onClick={submitting ? undefined : onClose} />
+      <div className="dialog-content panel p-6 grid gap-5" style={{ width: 'min(720px, calc(100% - 32px))' }}>
+        <h2 className="text-lg font-extrabold">{title}</h2>
+
+        <div className="grid gap-4">
+          <div className="grid gap-1.5">
+            <label className="field-label">Title</label>
+            <input
+              className={`input ${error && !noteTitle.trim() ? 'border-danger' : ''}`}
+              type="text"
+              value={noteTitle}
+              onChange={(e) => setNoteTitle(e.target.value)}
+              autoFocus
+              placeholder="Note title"
             />
+          </div>
+
+          <NoteEditor value={content} onChange={setContent} editable />
+
+          <div className="grid gap-2">
+            <label className="flex items-center gap-2 cursor-pointer text-sm font-bold">
+              <input
+                type="checkbox"
+                checked={passwordProtected}
+                onChange={(e) => setPasswordProtected(e.target.checked)}
+                className="accent-primary w-4 h-4"
+              />
+              Password Protect
+            </label>
             {passwordProtected && (
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 1 }}>
-                <TextField
-                  label="Password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  fullWidth
-                  error={passwordTooShort && password.length > 0}
-                  helperText={passwordTooShort ? 'Min 6 characters' : ' '}
-                />
-                <TextField
-                  label="Confirm Password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  fullWidth
-                  error={passwordMismatch && confirmPassword.length > 0}
-                  helperText={passwordMismatch ? 'Passwords do not match' : ' '}
-                />
-              </Stack>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                <div className="grid gap-1.5">
+                  <label className="field-label">Password</label>
+                  <input
+                    className={`input ${passwordTooShort && password.length > 0 ? 'border-danger' : ''}`}
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  {passwordTooShort && password.length > 0 && <span className="text-danger text-xs">Min 6 characters</span>}
+                </div>
+                <div className="grid gap-1.5">
+                  <label className="field-label">Confirm Password</label>
+                  <input
+                    className={`input ${passwordMismatch && confirmPassword.length > 0 ? 'border-danger' : ''}`}
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  {passwordMismatch && confirmPassword.length > 0 && <span className="text-danger text-xs">Passwords do not match</span>}
+                </div>
+              </div>
             )}
-          </Box>
-          {error && (
-            <Typography color="error.main" variant="body2">
-              {error}
-            </Typography>
-          )}
-        </Stack>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} disabled={submitting}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} variant="contained" disabled={disableSave}>
-          {saveLabel}
-        </Button>
-      </DialogActions>
-    </Dialog>
+          </div>
+
+          {error && <p className="text-danger text-sm">{error}</p>}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button className="btn btn-secondary" onClick={onClose} disabled={submitting}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={disableSave}>{saveLabel}</button>
+        </div>
+      </div>
+    </>
   );
 }
 

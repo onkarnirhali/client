@@ -1,18 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Checkbox,
-  Divider,
-  FormControlLabel,
-  Paper,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import HomeIcon from '@mui/icons-material/Home';
 import { useNavigate, useParams } from 'react-router-dom';
 import { HttpError } from '../api/http';
 import { useSnackbar } from '../components/feedback/SnackbarProvider';
@@ -113,41 +99,39 @@ export function NoteDetailPage() {
   const needsUnlock = Boolean(data?.requiresUnlock && data?.isPasswordProtected);
 
   return (
-    <Stack spacing={3}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap' }}>
-        <Stack direction="row" spacing={1}>
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/app/notes')}>
-            Back to Notes
-          </Button>
-          <Button variant="outlined" startIcon={<HomeIcon />} onClick={() => navigate('/app')}>
-            Dashboard
-          </Button>
-        </Stack>
-        {data && (
-          <FormControlLabel
-            control={(
-              <Switch
-                checked={editMode}
-                onChange={(event) => setEditMode(event.target.checked)}
-                disabled={needsUnlock}
-              />
-            )}
-            label="Edit mode"
-          />
-        )}
-      </Box>
+    <div className="grid gap-6">
+      {/* Loading */}
+      {isLoading && (
+        <div className="text-muted text-sm py-8 text-center">Loading note...</div>
+      )}
 
-      {isLoading && <Typography color="text.secondary">Loading note...</Typography>}
-      {error && <Typography color="error.main">Failed to load note.</Typography>}
+      {/* Error */}
+      {error && (
+        <div className="panel p-4 border-danger/20 bg-danger-soft text-danger text-sm font-bold">
+          Failed to load note.
+        </div>
+      )}
+
       {!isLoading && !error && data && (
-        <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'rgba(15,17,26,0.08)', borderRadius: 3, p: 3 }}>
-          <Stack spacing={2}>
-            <TextField
-              label="Title"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              disabled={!editMode}
-            />
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
+          {/* Editor */}
+          <div className="editor-card grid gap-5">
+            <div className="grid gap-1.5">
+              <label className="field-label">Title</label>
+              <input
+                className="input"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                disabled={!editMode}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <span className="chip">Owner: You</span>
+              {data.isPasswordProtected && <span className="badge badge-danger">Password protected</span>}
+            </div>
+
             <NoteEditor
               value={(content || EMPTY_NOTE_CONTENT) as NoteContent}
               onChange={setContent}
@@ -155,58 +139,119 @@ export function NoteDetailPage() {
             />
 
             {editMode && (
-              <>
-                <Divider />
-                <Stack spacing={1.5}>
-                  <FormControlLabel
-                    control={(
-                      <Checkbox
-                        checked={protectionEnabled}
-                        onChange={(event) => setProtectionEnabled(event.target.checked)}
-                      />
-                    )}
-                    label="Password Protect"
-                  />
-                  {enablingProtection && (
-                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                      <TextField
-                        label="Password"
-                        type="password"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                        error={passwordTooShort}
-                        helperText={passwordTooShort ? 'Min 6 characters' : ' '}
-                        fullWidth
-                      />
-                      <TextField
-                        label="Confirm Password"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(event) => setConfirmPassword(event.target.value)}
-                        error={passwordMismatch}
-                        helperText={passwordMismatch ? 'Passwords do not match' : ' '}
-                        fullWidth
-                      />
-                    </Stack>
-                  )}
-                  {disablingProtection && (
-                    <TextField
-                      label="Current Password"
-                      type="password"
-                      value={currentPassword}
-                      onChange={(event) => setCurrentPassword(event.target.value)}
+              <div className="grid gap-4 pt-2 border-t border-border">
+                <div className="grid gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold">
+                    <input
+                      type="checkbox"
+                      checked={protectionEnabled}
+                      onChange={(e) => setProtectionEnabled(e.target.checked)}
+                      className="accent-primary w-4 h-4"
                     />
+                    Password Protect
+                  </label>
+
+                  {enablingProtection && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                      <div className="grid gap-1.5">
+                        <label className="field-label">Password</label>
+                        <input
+                          className={`input ${passwordTooShort ? 'border-danger' : ''}`}
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        {passwordTooShort && <span className="text-danger text-xs">Min 6 characters</span>}
+                      </div>
+                      <div className="grid gap-1.5">
+                        <label className="field-label">Confirm Password</label>
+                        <input
+                          className={`input ${passwordMismatch ? 'border-danger' : ''}`}
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                        {passwordMismatch && <span className="text-danger text-xs">Passwords do not match</span>}
+                      </div>
+                    </div>
                   )}
-                </Stack>
-                <Box>
-                  <Button variant="contained" onClick={handleSave} disabled={updateMutation.isPending}>
-                    {updateMutation.isPending ? 'Saving...' : 'Save'}
-                  </Button>
-                </Box>
-              </>
+
+                  {disablingProtection && (
+                    <div className="grid gap-1.5 mt-2 max-w-sm">
+                      <label className="field-label">Current Password</label>
+                      <input
+                        className="input"
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <button className="btn btn-primary" onClick={handleSave} disabled={updateMutation.isPending}>
+                    {updateMutation.isPending ? 'Saving...' : 'Save changes'}
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => {
+                    if (data) {
+                      setTitle(data.title);
+                      setContent((data.content || EMPTY_NOTE_CONTENT) as NoteContent);
+                      setProtectionEnabled(Boolean(data.isPasswordProtected));
+                      setPassword('');
+                      setConfirmPassword('');
+                      setCurrentPassword('');
+                      setEditMode(false);
+                    }
+                  }}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
             )}
-          </Stack>
-        </Paper>
+          </div>
+
+          {/* Side rail */}
+          <aside className="grid gap-4 content-start">
+            <section className="panel p-5 grid gap-4">
+              <div className="flex items-center justify-between gap-2">
+                <button className="btn btn-secondary btn-sm" onClick={() => navigate('/app/notes')}>Back to notes</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app')}>Board</button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="field-label">Edit mode</span>
+                <button
+                  onClick={() => setEditMode(!editMode)}
+                  disabled={needsUnlock}
+                  className={`switch-el ${editMode ? 'on' : ''}`}
+                  role="switch"
+                  aria-checked={editMode}
+                />
+              </div>
+            </section>
+
+            {data.linkedTaskCount > 0 && (
+              <section className="panel p-5 grid gap-3">
+                <span className="eyebrow"><span className="eyebrow-dot" />linked tasks</span>
+                <h3 className="text-sm font-extrabold">Task context stays beside the note.</h3>
+                <p className="text-muted text-sm">{data.linkedTaskCount} linked task{data.linkedTaskCount !== 1 ? 's' : ''}</p>
+              </section>
+            )}
+
+            <section className="panel p-5 grid gap-3">
+              <span className="eyebrow"><span className="eyebrow-dot" />protection</span>
+              <h3 className="text-sm font-extrabold">Security controls stay in context.</h3>
+              <div className="flex flex-wrap gap-2">
+                {data.isPasswordProtected ? (
+                  <span className="badge badge-danger">Enabled</span>
+                ) : (
+                  <span className="badge badge-primary">Disabled</span>
+                )}
+                <span className="chip text-xs">Require password to open</span>
+              </div>
+            </section>
+          </aside>
+        </div>
       )}
 
       <NoteUnlockDialog
@@ -226,7 +271,6 @@ export function NoteDetailPage() {
           }
         }}
       />
-    </Stack>
+    </div>
   );
 }
-

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from '@mui/material';
 
 type Props = {
   open: boolean;
@@ -21,34 +20,33 @@ export function NoteUnlockDialog({ open, loading = false, error, onUnlock }: Pro
     await onUnlock(password);
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} fullWidth maxWidth="xs" disableEscapeKeyDown>
-      <DialogTitle>Unlock Note</DialogTitle>
-      <DialogContent dividers>
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            This note is password protected. Enter the password to continue.
-          </Typography>
-          <TextField
-            label="Password"
+    <>
+      <div className="dialog-overlay" />
+      <div className="dialog-content panel p-6 grid gap-4" style={{ width: 'min(400px, calc(100% - 32px))' }}>
+        <h2 className="text-lg font-extrabold">Unlock Note</h2>
+        <p className="text-muted text-sm">This note is password protected. Enter the password to continue.</p>
+        <div className="grid gap-1.5">
+          <label className="field-label">Password</label>
+          <input
+            className="input"
             type="password"
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             autoFocus
+            onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
           />
-          {error && (
-            <Typography color="error.main" variant="body2">
-              {error}
-            </Typography>
-          )}
-        </Stack>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={handleUnlock} variant="contained" disabled={loading || !password.trim()}>
-          {loading ? 'Verifying...' : 'Unlock'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </div>
+        {error && <p className="text-danger text-sm">{error}</p>}
+        <div className="flex justify-end">
+          <button className="btn btn-primary" onClick={handleUnlock} disabled={loading || !password.trim()}>
+            {loading ? 'Verifying...' : 'Unlock'}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 

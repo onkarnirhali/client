@@ -1,17 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControlLabel,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
-import LockIcon from '@mui/icons-material/Lock';
 import { NoteSummary, useNotes } from '../../features/notes';
 
 type Props = {
@@ -45,71 +32,73 @@ export function LinkExistingNotesDialog({ open, linkedNoteIds, onClose, onLink }
     [items, selected]
   );
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Link Existing Notes</DialogTitle>
-      <DialogContent dividers>
-        <Stack spacing={1.5}>
-          <TextField
-            label="Search notes by title"
+    <>
+      <div className="dialog-overlay" onClick={onClose} />
+      <div className="dialog-content panel p-6 grid gap-4">
+        <h2 className="text-lg font-extrabold">Link Existing Notes</h2>
+
+        <div className="grid gap-1.5">
+          <label className="field-label">Search notes by title</label>
+          <input
+            className="input"
+            type="text"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search..."
           />
-          <Stack spacing={0.75} sx={{ maxHeight: 360, overflowY: 'auto' }}>
-            {isLoading && <Typography color="text.secondary">Loading notes...</Typography>}
-            {!isLoading && filtered.length === 0 && (
-              <Typography color="text.secondary">No notes found.</Typography>
-            )}
-            {!isLoading && filtered.map((note) => {
-              const disabled = linkedSet.has(note.id);
-              return (
-                <FormControlLabel
-                  key={note.id}
-                  disabled={disabled}
-                  control={(
-                    <Checkbox
-                      checked={selected.has(note.id)}
-                      onChange={(event) => {
-                        setSelected((prev) => {
-                          const next = new Set(prev);
-                          if (event.target.checked) next.add(note.id);
-                          else next.delete(note.id);
-                          return next;
-                        });
-                      }}
-                    />
-                  )}
-                  label={(
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      {note.isPasswordProtected && <LockIcon fontSize="small" color="action" />}
-                      <Typography variant="body2">{note.title}</Typography>
-                      {disabled && (
-                        <Typography variant="caption" color="text.secondary">
-                          Already linked
-                        </Typography>
-                      )}
-                    </Stack>
-                  )}
+        </div>
+
+        <div className="max-h-[360px] overflow-y-auto grid gap-1">
+          {isLoading && <p className="text-muted text-sm">Loading notes...</p>}
+          {!isLoading && filtered.length === 0 && <p className="text-muted text-sm">No notes found.</p>}
+          {!isLoading && filtered.map((note) => {
+            const isLinked = linkedSet.has(note.id);
+            return (
+              <label
+                key={note.id}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-[var(--radius-xs)] cursor-pointer hover:bg-white/60 ${isLinked ? 'opacity-50' : ''}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.has(note.id)}
+                  disabled={isLinked}
+                  onChange={(e) => {
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      if (e.target.checked) next.add(note.id);
+                      else next.delete(note.id);
+                      return next;
+                    });
+                  }}
+                  className="accent-primary w-4 h-4"
                 />
-              );
-            })}
-          </Stack>
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
-          disabled={!selectedItems.length}
-          onClick={() => {
-            onLink(selectedItems);
-            onClose();
-          }}
-        >
-          Link
-        </Button>
-      </DialogActions>
-    </Dialog>
+                <span className="flex items-center gap-1.5 text-sm">
+                  {note.isPasswordProtected && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-danger"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                  )}
+                  {note.title}
+                  {isLinked && <span className="text-muted text-xs">(Already linked)</span>}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button
+            className="btn btn-primary"
+            disabled={!selectedItems.length}
+            onClick={() => { onLink(selectedItems); onClose(); }}
+          >
+            Link
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
