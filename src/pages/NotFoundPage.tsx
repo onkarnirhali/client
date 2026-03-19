@@ -4,47 +4,36 @@ export function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen relative z-[1] grid place-items-center py-10">
-      <section className="panel p-8 md:p-12 w-[min(680px,calc(100%-32px))] grid gap-6 text-center">
-        <div className="flex items-center gap-3.5 justify-center">
-          <span className="w-11 h-11 rounded-[16px] inline-flex items-center justify-center bg-linear-to-br from-primary to-primary-strong text-white text-xl font-extrabold">M</span>
-          <div className="grid gap-0.5 text-left">
-            <span className="text-base font-extrabold">Might as well</span>
-            <span className="text-muted text-[13px]">Page not found</span>
+    <div className="bg-[#f6f6f8] min-h-screen flex items-center justify-center">
+      <div className="text-center px-6">
+        {/* Large 404 */}
+        <h1 className="text-8xl lg:text-9xl font-extrabold text-primary mb-2 tracking-tight">404</h1>
+
+        {/* Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 rounded-full bg-primary-soft flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1e3fae" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+              <path d="M11 8v4" /><circle cx="11" cy="15" r="0.5" fill="#1e3fae" />
+            </svg>
           </div>
         </div>
 
-        <span className="eyebrow mx-auto"><span className="eyebrow-dot" />not found</span>
-        <div className="text-[6rem] md:text-[8rem] font-extrabold leading-none tracking-[-0.06em] text-primary/20">404</div>
-        <div className="grid gap-3">
-          <h1 className="title-md">This page slipped off the board.</h1>
-          <p className="text-muted text-[15px] max-w-[560px] mx-auto">
-            The page you are looking for doesn't exist. Head back to your board
-            or notes to continue working.
-          </p>
-        </div>
+        <h2 className="text-xl font-bold mb-2">Page not found</h2>
+        <p className="text-muted mb-8 max-w-sm mx-auto">
+          The page you&#39;re looking for doesn&#39;t exist or has been moved.
+        </p>
 
-        <div className="grid sm:grid-cols-3 gap-3 mt-2">
-          <article className="task-card cursor-pointer" onClick={() => navigate('/app')}>
-            <div className="font-bold text-sm">Return to board</div>
-            <p className="text-muted text-[13px] mt-1">Re-enter the main Kanban workspace.</p>
-          </article>
-          <article className="task-card cursor-pointer" onClick={() => navigate('/app/notes')}>
-            <div className="font-bold text-sm">Review notes</div>
-            <p className="text-muted text-[13px] mt-1">Jump back into active project context.</p>
-          </article>
-          <article className="task-card cursor-pointer" onClick={() => navigate('/login')}>
-            <div className="font-bold text-sm">Sign in</div>
-            <p className="text-muted text-[13px] mt-1">Return to the login page.</p>
-          </article>
-        </div>
-
-        <div className="flex gap-3 justify-center mt-2">
-          <button onClick={() => navigate('/app')} className="btn btn-primary">Go to /app</button>
-          <button onClick={() => navigate('/login')} className="btn btn-secondary">Sign in</button>
-        </div>
-      </section>
-    </main>
+        <button
+          onClick={() => navigate('/app')}
+          className="inline-flex items-center gap-2 bg-primary text-white rounded-[10px] px-6 py-3 font-semibold text-sm hover:bg-primary-strong transition-colors duration-150 shadow-sm"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Go to Dashboard
+        </button>
+      </div>
+    </div>
   );
 }
-

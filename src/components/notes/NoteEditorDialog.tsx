@@ -70,16 +70,21 @@ export function NoteEditorDialog({
   if (!open) return null;
 
   return (
-    <>
-      <div className="dialog-overlay" onClick={submitting ? undefined : onClose} />
-      <div className="dialog-content panel p-6 grid gap-5" style={{ width: 'min(720px, calc(100% - 32px))' }}>
-        <h2 className="text-lg font-extrabold">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="dialog-overlay absolute inset-0" onClick={submitting ? undefined : onClose} />
+      <div className="relative bg-white rounded-2xl border border-gray-200/60 shadow-2xl w-full max-h-[90vh] overflow-y-auto" style={{ maxWidth: '720px' }}>
+        <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-lg font-bold">{title}</h2>
+          <button onClick={onClose} disabled={submitting} className="text-muted hover:text-text p-1 rounded-lg hover:bg-gray-100 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
 
-        <div className="grid gap-4">
-          <div className="grid gap-1.5">
-            <label className="field-label">Title</label>
+        <div className="px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Title <span className="text-red-500">*</span></label>
             <input
-              className={`input ${error && !noteTitle.trim() ? 'border-danger' : ''}`}
+              className={`w-full px-3 py-2.5 text-sm border rounded-[10px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${error && !noteTitle.trim() ? 'border-red-400' : 'border-gray-200'}`}
               type="text"
               value={noteTitle}
               onChange={(e) => setNoteTitle(e.target.value)}
@@ -91,7 +96,7 @@ export function NoteEditorDialog({
           <NoteEditor value={content} onChange={setContent} editable />
 
           <div className="grid gap-2">
-            <label className="flex items-center gap-2 cursor-pointer text-sm font-bold">
+            <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
               <input
                 type="checkbox"
                 checked={passwordProtected}
@@ -102,39 +107,39 @@ export function NoteEditorDialog({
             </label>
             {passwordProtected && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
-                <div className="grid gap-1.5">
-                  <label className="field-label">Password</label>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Password</label>
                   <input
-                    className={`input ${passwordTooShort && password.length > 0 ? 'border-danger' : ''}`}
+                    className={`w-full px-3 py-2.5 text-sm border rounded-[10px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${passwordTooShort && password.length > 0 ? 'border-red-400' : 'border-gray-200'}`}
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  {passwordTooShort && password.length > 0 && <span className="text-danger text-xs">Min 6 characters</span>}
+                  {passwordTooShort && password.length > 0 && <span className="text-red-500 text-xs">Min 6 characters</span>}
                 </div>
-                <div className="grid gap-1.5">
-                  <label className="field-label">Confirm Password</label>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Confirm Password</label>
                   <input
-                    className={`input ${passwordMismatch && confirmPassword.length > 0 ? 'border-danger' : ''}`}
+                    className={`w-full px-3 py-2.5 text-sm border rounded-[10px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${passwordMismatch && confirmPassword.length > 0 ? 'border-red-400' : 'border-gray-200'}`}
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
-                  {passwordMismatch && confirmPassword.length > 0 && <span className="text-danger text-xs">Passwords do not match</span>}
+                  {passwordMismatch && confirmPassword.length > 0 && <span className="text-red-500 text-xs">Passwords do not match</span>}
                 </div>
               </div>
             )}
           </div>
 
-          {error && <p className="text-danger text-sm">{error}</p>}
+          {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button className="btn btn-secondary" onClick={onClose} disabled={submitting}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={disableSave}>{saveLabel}</button>
+        <div className="px-6 py-4 border-t border-gray-100 bg-[#f6f6f8]/50 flex justify-end gap-3 rounded-b-2xl">
+          <button className="px-4 py-2.5 text-sm font-medium text-muted border border-gray-200 rounded-[10px] hover:bg-white transition-colors" onClick={onClose} disabled={submitting}>Cancel</button>
+          <button className="px-6 py-2.5 text-sm font-semibold bg-primary text-white rounded-[10px] hover:opacity-90 transition-colors shadow-sm" onClick={handleSave} disabled={disableSave}>{saveLabel}</button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

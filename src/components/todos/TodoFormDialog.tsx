@@ -138,120 +138,164 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
 
   return (
     <>
-      <div className="dialog-overlay" onClick={submitting ? undefined : onClose} />
-      <div className="dialog-content panel p-6 grid gap-5">
-        <h2 className="text-lg font-extrabold">{mode === 'create' ? 'New Todo' : 'Edit Todo'}</h2>
-
-        <div className="grid gap-4">
-          <div className="grid gap-1.5">
-            <label className="field-label">Title</label>
-            <input
-              className={`input ${errors.title ? 'border-danger' : ''}`}
-              type="text"
-              value={form.title}
-              onChange={handleChange('title')}
-              autoFocus
-              placeholder="Task title"
-            />
-            {errors.title && <span className="text-danger text-xs">{errors.title}</span>}
-          </div>
-
-          <div className="grid gap-1.5">
-            <label className="field-label">Description</label>
-            <div className="flex gap-2 items-stretch">
-              <textarea
-                className="textarea-field flex-1"
-                value={form.description}
-                onChange={handleChange('description')}
-                placeholder="Task description..."
-                rows={3}
-              />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="dialog-overlay absolute inset-0" onClick={submitting ? undefined : onClose} />
+        <div className="relative bg-white rounded-2xl border border-gray-200/60 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">{mode === 'create' ? 'New Todo' : 'Edit Todo'}</h2>
               <button
-                className="btn btn-secondary text-xs whitespace-nowrap self-stretch"
-                onClick={handleRephrase}
-                disabled={aiLoading || submitting}
+                onClick={onClose}
+                disabled={submitting}
+                className="text-muted hover:text-text p-1 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                {aiLoading ? 'Polishing...' : 'Polish with AI'}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
           </div>
 
-          <div>
-            <AddNotesMenuButton
-              disabled={submitting}
-              onNewNote={() => setNewNoteDialogOpen(true)}
-              onLinkExisting={() => setLinkExistingOpen(true)}
-            />
-            <LinkedNotesChips
-              items={combinedLinkedChips}
-              disabled={submitting}
-              onRemove={(key) => {
-                if (key.startsWith('existing-')) {
-                  const id = Number(key.replace('existing-', ''));
-                  setLinkedExistingNotes((prev) => prev.filter((item) => item.id !== id));
-                  return;
-                }
-                setNewNoteDrafts((prev) => prev.filter((item) => item.key !== key));
-              }}
-            />
-          </div>
+          {/* Body */}
+          <div className="px-6 py-5 space-y-4">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Title <span className="text-red-500">*</span></label>
+              <input
+                className={`w-full px-3 py-2.5 text-sm border rounded-[10px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${errors.title ? 'border-red-400' : 'border-gray-200'}`}
+                type="text"
+                value={form.title}
+                onChange={handleChange('title')}
+                autoFocus
+                placeholder="What needs to be done?"
+              />
+              {errors.title && <span className="text-red-500 text-xs mt-1">{errors.title}</span>}
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <span className="field-label">Status</span>
-              <div className="grid gap-1.5">
-                {(['To Do', 'In Progress', 'Done'] as UiStatus[]).map((s) => (
-                  <label key={s} className="flex items-center gap-2 cursor-pointer text-sm">
-                    <input
-                      type="radio"
-                      name="status"
-                      value={s}
-                      checked={form.status === s}
-                      onChange={() => setForm((prev) => ({ ...prev, status: s }))}
-                      className="accent-primary"
-                    />
-                    {s}
-                  </label>
-                ))}
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Description</label>
+              <div className="relative">
+                <textarea
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-[10px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                  value={form.description}
+                  onChange={handleChange('description')}
+                  placeholder="Add more details..."
+                  rows={3}
+                />
+                <button
+                  className="absolute right-2 bottom-2 text-[11px] text-primary font-medium bg-primary/10 px-2 py-1 rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1 disabled:opacity-50"
+                  onClick={handleRephrase}
+                  disabled={aiLoading || submitting}
+                  title="AI Polish"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                  {aiLoading ? 'Polishing...' : 'AI Polish'}
+                </button>
               </div>
             </div>
-            <div className="grid gap-2 content-start">
-              <span className="field-label">Priority</span>
-              <div className="grid grid-cols-3 gap-1 p-1 rounded-[var(--radius-sm)] border border-border">
-                {(['Low', 'Normal', 'High'] as UiPriority[]).map((option) => {
-                  const selected = form.priority === option;
-                  return (
+
+            {/* Status & Priority */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Status</label>
+                <div className="flex border border-gray-200 rounded-[10px] overflow-hidden">
+                  {(['To Do', 'In Progress', 'Done'] as UiStatus[]).map((s) => (
                     <button
-                      key={option}
+                      key={s}
                       type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, priority: option }))}
-                      className={`min-h-[36px] rounded-[var(--radius-xs)] text-sm font-bold transition-colors cursor-pointer ${
-                        selected
-                          ? 'bg-primary-soft text-primary-strong'
-                          : 'text-muted hover:bg-white/60'
-                      }`}
+                      onClick={() => setForm((prev) => ({ ...prev, status: s }))}
+                      className={`flex-1 py-2 text-xs font-medium transition-colors ${
+                        form.status === s
+                          ? 'font-semibold bg-primary/10 text-primary'
+                          : 'text-muted hover:bg-gray-50'
+                      } ${s !== 'Done' ? 'border-r border-gray-200' : ''}`}
                     >
-                      {option}
+                      {s}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Priority</label>
+                <div className="flex border border-gray-200 rounded-[10px] overflow-hidden">
+                  {(['Low', 'Normal', 'High'] as UiPriority[]).map((option, i) => {
+                    const selected = form.priority === option;
+                    let activeCls = '';
+                    if (selected) {
+                      if (option === 'High') activeCls = 'bg-orange-50 text-orange-700 font-semibold';
+                      else if (option === 'Normal') activeCls = 'bg-yellow-50 text-yellow-800 font-semibold';
+                      else activeCls = 'bg-gray-100 text-gray-700 font-semibold';
+                    }
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, priority: option }))}
+                        className={`flex-1 py-2 text-xs font-medium transition-colors ${
+                          selected ? activeCls : 'text-muted hover:bg-gray-50'
+                        } ${i < 2 ? 'border-r border-gray-200' : ''}`}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
+
+            {/* Due Date */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Due Date</label>
+              <input
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-[10px] bg-white text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                type="date"
+                value={form.dueDate}
+                onChange={handleChange('dueDate')}
+              />
+            </div>
+
+            {/* Linked Notes */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Linked Notes</label>
+              <LinkedNotesChips
+                items={combinedLinkedChips}
+                disabled={submitting}
+                onRemove={(key) => {
+                  if (key.startsWith('existing-')) {
+                    const id = Number(key.replace('existing-', ''));
+                    setLinkedExistingNotes((prev) => prev.filter((item) => item.id !== id));
+                    return;
+                  }
+                  setNewNoteDrafts((prev) => prev.filter((item) => item.key !== key));
+                }}
+              />
+              <AddNotesMenuButton
+                disabled={submitting}
+                onNewNote={() => setNewNoteDialogOpen(true)}
+                onLinkExisting={() => setLinkExistingOpen(true)}
+              />
+            </div>
+
+            {submitting && <p className="text-muted text-sm">Saving...</p>}
           </div>
 
-          <div className="grid gap-1.5">
-            <label className="field-label">Due Date</label>
-            <input className="input" type="date" value={form.dueDate} onChange={handleChange('dueDate')} />
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-gray-100 bg-[#f6f6f8]/50 flex justify-end gap-3 rounded-b-2xl">
+            <button
+              className="px-4 py-2.5 text-sm font-medium text-muted border border-gray-200 rounded-[10px] hover:bg-white transition-colors"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-6 py-2.5 text-sm font-semibold bg-primary text-white rounded-[10px] hover:opacity-90 transition-colors shadow-sm"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {mode === 'create' ? 'Create Todo' : 'Save Changes'}
+            </button>
           </div>
-        </div>
-
-        {submitting && <p className="text-muted text-sm">Saving...</p>}
-
-        <div className="flex justify-end gap-2 pt-2">
-          <button className="btn btn-secondary" onClick={onClose} disabled={submitting}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
-            {mode === 'create' ? 'Create' : 'Save'}
-          </button>
         </div>
       </div>
 

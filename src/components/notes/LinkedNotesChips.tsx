@@ -14,8 +14,7 @@ type Props = {
 export function LinkedNotesChips({ items, onRemove, disabled = false }: Props) {
   if (!items.length) return null;
   return (
-    <div className="grid gap-2 mt-2">
-      <span className="field-label">Linked Notes</span>
+    <div className="grid gap-2 mt-2 mb-2">
       <div className="flex flex-wrap gap-2">
         {items.map((item) => (
           <span key={item.key} className="chip gap-1.5">

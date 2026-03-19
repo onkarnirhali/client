@@ -120,143 +120,135 @@ export function AiSuggestionsWidget() {
     }
   };
 
-  const panelContent = (
-    <div className="grid gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-[12px] inline-flex items-center justify-center bg-primary-soft text-primary-strong text-sm font-extrabold">AI</span>
-          <span className="font-extrabold text-sm">Suggestions ({count})</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleRefresh}
-            disabled={refreshMutation.isPending || isFetching}
-            className="chip cursor-pointer hover:bg-white/90 text-xs"
-            title="Refresh"
-          >
-            Refresh
-          </button>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="xl:hidden chip cursor-pointer hover:bg-white/90 text-xs"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        <button
-          className="btn btn-soft btn-sm text-xs"
-          onClick={handleAddAll}
-          disabled={addMutation.isPending || acceptMutation.isPending || !hasSuggestions}
-        >
-          Add All
-        </button>
-        <button
-          className="btn btn-ghost btn-sm text-xs"
-          onClick={handleDismissAll}
-          disabled={bulkDismissMutation.isPending || !hasSuggestions}
-        >
-          Dismiss All
-        </button>
-      </div>
-
-      {refreshHint && <p className="text-muted text-xs">{refreshHint}</p>}
-
-      {(isLoading || isFetching || refreshMutation.isPending) && (
-        <div className="text-center py-4">
-          <div className="w-6 h-6 mx-auto border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted text-sm mt-2">Loading suggestions...</p>
-        </div>
-      )}
-
-      {!isLoading && !isFetching && suggestions.length === 0 && (
-        <div className="text-center py-4">
-          <p className="text-muted text-sm">
-            {context?.reasonCode === 'INSUFFICIENT_HISTORY'
-              ? 'Create tasks to train AI suggestions or connect Gmail/Outlook.'
-              : context?.reasonCode === 'NO_PROVIDER_CONNECTED'
-                ? 'Connect Gmail/Outlook to enable email-based suggestions.'
-                : 'No suggestions right now'}
-          </p>
-          <button className="btn btn-secondary btn-sm mt-3 text-xs" onClick={handleRefresh}>
-            Refresh
-          </button>
-        </div>
-      )}
-
-      {suggestions.length > 0 && (
-        <div className="grid gap-3">
-          {suggestions.map((s) => {
-            const sourceLabel = typeof s.metadata?.sourceLabel === 'string' ? s.metadata.sourceLabel : '';
-            return (
-              <article key={s.id} className="mini-card grid gap-2">
-                <strong className="text-sm leading-snug">{s.title}</strong>
-                {s.detail && <p className="text-muted text-[13px] line-clamp-3">{s.detail}</p>}
-                {sourceLabel && <span className="text-muted text-xs">Source: {sourceLabel}</span>}
-                <div className="flex gap-1.5 mt-1">
-                  <button
-                    className="btn btn-soft btn-sm text-xs flex-1"
-                    onClick={() => handleAdd(s)}
-                    disabled={addMutation.isPending}
-                  >
-                    Add
-                  </button>
-                  <button
-                    className="btn btn-ghost btn-sm text-xs flex-1"
-                    onClick={() => handleDismiss(s)}
-                    disabled={dismissMutation.isPending}
-                  >
-                    Dismiss
-                  </button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
-    </div>
+  const sparkleIcon = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+    </svg>
   );
 
   return (
-    <>
-      {/* Desktop: inline panel */}
-      <div className="hidden xl:block">
-        <div className="panel p-5 sticky top-5">
-          <div className="grid gap-2 mb-4">
-            <span className="eyebrow"><span className="eyebrow-dot" />ai suggestions</span>
-          </div>
-          {panelContent}
-        </div>
-      </div>
-
-      {/* Mobile: floating bubble */}
-      <div className="xl:hidden">
-        <div className="fixed bottom-20 right-4 z-[10]">
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="w-14 h-14 rounded-full bg-linear-to-br from-[#d0d9fa] to-[#6d8dff] text-white shadow-[0_10px_24px_rgba(55,78,255,0.3)] inline-flex items-center justify-center cursor-pointer hover:shadow-[0_14px_28px_rgba(55,78,255,0.4)] transition-shadow relative"
-            aria-label="Open AI suggestions"
-          >
-            <span className="text-lg font-extrabold">AI</span>
-            {hasSuggestions && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-[10px] font-extrabold inline-flex items-center justify-center">
-                {count}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {mobileOpen && (
-          <>
-            <div className="fixed inset-0 bg-black/30 backdrop-blur-[4px] z-[11]" onClick={() => setMobileOpen(false)} />
-            <div className="fixed bottom-0 left-0 right-0 z-[12] panel rounded-t-[22px] p-5 max-h-[70vh] overflow-y-auto">
-              {panelContent}
+    <div className="fixed bottom-6 right-6 z-40">
+      {/* Expandable Panel */}
+      {mobileOpen && (
+        <div className="mb-3 w-80 sm:w-96 bg-white rounded-xl border border-gray-200/60 shadow-xl overflow-hidden">
+          {/* Panel Header */}
+          <div className="bg-gradient-to-r from-[var(--color-primary)] to-indigo-600 text-white px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {sparkleIcon}
+              <span className="text-sm font-bold">AI Suggestions</span>
             </div>
-          </>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshMutation.isPending || isFetching}
+                className="hover:bg-white/20 rounded-lg p-1 transition-colors disabled:opacity-50"
+                title="Refresh suggestions"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+              </button>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="hover:bg-white/20 rounded-lg p-1 transition-colors"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Suggestions List */}
+          <div className="max-h-[50vh] overflow-y-auto divide-y divide-gray-100">
+            {refreshHint && <p className="text-muted text-xs px-4 py-2">{refreshHint}</p>}
+
+            {(isLoading || isFetching || refreshMutation.isPending) && (
+              <div className="text-center py-6">
+                <div className="w-6 h-6 mx-auto border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-muted text-sm mt-2">Loading suggestions...</p>
+              </div>
+            )}
+
+            {!isLoading && !isFetching && suggestions.length === 0 && (
+              <div className="text-center py-6 px-4">
+                <p className="text-muted text-sm">
+                  {context?.reasonCode === 'INSUFFICIENT_HISTORY'
+                    ? 'Create tasks to train AI suggestions or connect Gmail/Outlook.'
+                    : context?.reasonCode === 'NO_PROVIDER_CONNECTED'
+                      ? 'Connect Gmail/Outlook to enable email-based suggestions.'
+                      : 'No suggestions right now'}
+                </p>
+                <button className="text-xs text-primary font-medium mt-2 hover:underline" onClick={handleRefresh}>
+                  Refresh
+                </button>
+              </div>
+            )}
+
+            {suggestions.map((s) => {
+              const sourceLabel = typeof s.metadata?.sourceLabel === 'string' ? s.metadata.sourceLabel : '';
+              return (
+                <div key={s.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <h4 className="text-sm font-semibold mb-1">{s.title}</h4>
+                  {s.detail && <p className="text-xs text-muted mb-2.5 line-clamp-3">{s.detail}</p>}
+                  {sourceLabel && !s.detail && <p className="text-xs text-muted mb-2.5">Source: {sourceLabel}</p>}
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="text-xs bg-primary text-white px-2.5 py-1 rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50"
+                      onClick={() => handleAdd(s)}
+                      disabled={addMutation.isPending}
+                    >
+                      Add as Todo
+                    </button>
+                    <button
+                      className="text-xs text-muted hover:text-text px-2 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      onClick={() => handleDismiss(s)}
+                      disabled={dismissMutation.isPending}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Panel Footer */}
+          {hasSuggestions && (
+            <div className="border-t border-gray-100 px-4 py-2.5 flex justify-between items-center">
+              <span className="text-[11px] text-muted">{count} suggestion{count !== 1 ? 's' : ''}</span>
+              <div className="flex gap-3">
+                <button
+                  className="text-[11px] text-primary font-medium hover:underline disabled:opacity-50"
+                  onClick={handleAddAll}
+                  disabled={addMutation.isPending || acceptMutation.isPending}
+                >
+                  Add All
+                </button>
+                <button
+                  className="text-[11px] text-muted hover:text-text font-medium disabled:opacity-50"
+                  onClick={handleDismissAll}
+                  disabled={bulkDismissMutation.isPending}
+                >
+                  Dismiss All
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Floating Button */}
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="relative w-14 h-14 rounded-full bg-gradient-to-br from-indigo-400 to-[var(--color-primary)] text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center"
+        aria-label="Open AI suggestions"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+        </svg>
+        {hasSuggestions && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+            {count}
+          </span>
         )}
-      </div>
-    </>
+      </button>
+    </div>
   );
 }

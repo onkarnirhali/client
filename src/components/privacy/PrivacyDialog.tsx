@@ -58,56 +58,63 @@ export function PrivacyDialog({ open, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <>
-      <div className="dialog-overlay" onClick={deleteMutation.isPending ? undefined : onClose} />
-      <div className="dialog-content panel p-6 grid gap-5">
-        <h2 className="text-lg font-extrabold">Privacy Controls</h2>
-
-        <div className="mini-card grid gap-3">
-          <strong>Export my data</strong>
-          <p className="text-muted text-[13px]">
-            Download a JSON snapshot of your account profile, todos, suggestion records,
-            provider links, and recent audit events.
-          </p>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => exportMutation.mutate()}
-            disabled={exportMutation.isPending}
-          >
-            {exportMutation.isPending ? 'Preparing export...' : 'Download JSON export'}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="dialog-overlay absolute inset-0" onClick={deleteMutation.isPending ? undefined : onClose} />
+      <div className="relative bg-white rounded-2xl border border-gray-200/60 shadow-2xl w-full max-w-md">
+        <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-lg font-bold">Privacy Controls</h2>
+          <button onClick={onClose} disabled={deleteMutation.isPending} className="text-muted hover:text-text p-1 rounded-lg hover:bg-gray-100 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
 
-        <div className="p-4 rounded-[var(--radius-md)] border border-danger/20 bg-danger-soft/30 grid gap-3">
-          <strong className="text-danger">Delete account and data</strong>
-          <div className="text-sm text-[#815224] bg-accent-soft p-2 rounded-[var(--radius-xs)]">
-            This permanently removes your account and user-owned data. This action cannot be undone.
+        <div className="px-6 py-5 space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200/60 p-4 grid gap-3">
+            <strong className="text-sm">Export my data</strong>
+            <p className="text-muted text-[13px]">
+              Download a JSON snapshot of your account profile, todos, suggestion records,
+              provider links, and recent audit events.
+            </p>
+            <button
+              className="px-3 py-1.5 text-xs font-medium text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-fit"
+              onClick={() => exportMutation.mutate()}
+              disabled={exportMutation.isPending}
+            >
+              {exportMutation.isPending ? 'Preparing export...' : 'Download JSON export'}
+            </button>
           </div>
-          <div className="grid gap-1.5">
-            <label className="field-label">Type DELETE to confirm</label>
-            <input
-              className="input"
-              type="text"
-              value={confirmation}
-              onChange={(e) => setConfirmation(e.target.value)}
-              autoComplete="off"
-            />
+
+          <div className="p-4 rounded-xl border border-red-200/40 bg-red-50/30 grid gap-3">
+            <strong className="text-red-600 text-sm">Delete account and data</strong>
+            <div className="text-sm text-amber-800 bg-amber-50 p-2 rounded-lg">
+              This permanently removes your account and user-owned data. This action cannot be undone.
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Type DELETE to confirm</label>
+              <input
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-[10px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                type="text"
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+            <button
+              className="px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors w-fit disabled:opacity-50"
+              disabled={deleteDisabled}
+              onClick={() => deleteMutation.mutate()}
+            >
+              {deleteMutation.isPending ? 'Deleting account...' : 'Permanently delete account'}
+            </button>
           </div>
-          <button
-            className="btn btn-danger btn-sm"
-            disabled={deleteDisabled}
-            onClick={() => deleteMutation.mutate()}
-          >
-            {deleteMutation.isPending ? 'Deleting account...' : 'Permanently delete account'}
-          </button>
         </div>
 
-        <div className="flex justify-end">
-          <button className="btn btn-secondary" onClick={onClose} disabled={deleteMutation.isPending}>
+        <div className="px-6 py-4 border-t border-gray-100 bg-[#f6f6f8]/50 flex justify-end rounded-b-2xl">
+          <button className="px-4 py-2.5 text-sm font-medium text-muted border border-gray-200 rounded-[10px] hover:bg-white transition-colors" onClick={onClose} disabled={deleteMutation.isPending}>
             Close
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

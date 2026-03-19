@@ -98,67 +98,57 @@ export function AdminPage() {
 
   return (
     <div className="grid gap-6">
-      {/* Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <article className="metric-card">
-          <div className="metric-label">Users</div>
-          <div className="metric-value">{rowCount}</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">Admins</div>
-          <div className="metric-value">{adminsCount}</div>
-          <div className="metric-trend">Current user cannot demote self</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">Page</div>
-          <div className="metric-value">{page + 1}</div>
-          <div className="metric-trend">of {totalPages || 1}</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">View</div>
-          <div className="metric-value">{tab === TAB_ADMINS ? 'Admins' : 'All'}</div>
-        </article>
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-extrabold tracking-tight">Admin</h1>
+        <p className="text-sm text-muted mt-1">Manage users and access for Might as well.</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        <button
-          className={`tab-btn ${tab === TAB_ALL ? 'active' : ''}`}
-          onClick={() => { setTab(TAB_ALL); setPage(0); }}
-        >
-          All users
-        </button>
-        <button
-          className={`tab-btn ${tab === TAB_ADMINS ? 'active' : ''}`}
-          onClick={() => { setTab(TAB_ADMINS); setPage(0); }}
-        >
-          Admins
-        </button>
+      <div className="border-b border-gray-200">
+        <div className="flex gap-0">
+          <button
+            className={`px-4 py-2.5 text-sm font-medium transition-colors -mb-px ${
+              tab === TAB_ALL ? 'font-semibold text-primary border-b-2 border-primary' : 'text-muted hover:text-text'
+            }`}
+            onClick={() => { setTab(TAB_ALL); setPage(0); }}
+          >
+            All Users
+          </button>
+          <button
+            className={`px-4 py-2.5 text-sm font-medium transition-colors -mb-px ${
+              tab === TAB_ADMINS ? 'font-semibold text-primary border-b-2 border-primary' : 'text-muted hover:text-text'
+            }`}
+            onClick={() => { setTab(TAB_ADMINS); setPage(0); }}
+          >
+            Admins
+          </button>
+        </div>
       </div>
 
-      {/* Desktop table */}
+      {/* Desktop Table */}
       <div className="hidden md:block">
-        <div className="panel p-5">
+        <div className="bg-white rounded-xl border border-gray-200/60 overflow-hidden">
           {(isLoading || isFetching) && (
-            <div className="h-1 bg-primary/20 rounded-full overflow-hidden mb-4">
+            <div className="h-1 bg-primary/20 rounded-full overflow-hidden">
               <div className="h-full bg-primary rounded-full animate-[loading_1.4s_ease-in-out_infinite] w-1/3" />
             </div>
           )}
-          <div className="table-wrap">
-            <table>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1100px]">
               <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Provider</th>
-                  <th>Outlook</th>
-                  <th>Created</th>
-                  <th>Last active</th>
-                  <th>Active</th>
-                  <th>Admin</th>
+                <tr className="bg-[#f6f6f8] border-b border-gray-200/60">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Name</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Email</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Provider</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Outlook Email</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Created</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Last Active</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Active</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Admin</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {rows.length === 0 && !isLoading && (
                   <tr><td colSpan={8} className="text-center text-muted py-6">No users found.</td></tr>
                 )}
@@ -167,19 +157,25 @@ export function AdminPage() {
                   const isSelf = row.id === currentUserId;
                   const isPending = pendingIds.has(row.id);
                   const isActive = row.isEnabled !== false;
-                  const isAdmin = row.role === 'admin';
+                  const isAdminUser = row.role === 'admin';
                   return (
-                    <tr key={row.id}>
-                      <td>
-                        <strong>{safeText(row.name)}</strong>
-                        {isSelf && <><br /><span className="text-muted text-xs">Current user</span></>}
+                    <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
+                            {(safeText(row.name) || '??').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <span className="text-sm font-medium">{safeText(row.name)}</span>
+                        </div>
                       </td>
-                      <td>{safeText(row.email)}</td>
-                      <td><span className="badge badge-info">{safeText(row.providerName)}</span></td>
-                      <td>{safeText(row.outlookAccountEmail) || '-'}</td>
-                      <td>{formatDateTime(row.createdAt)}</td>
-                      <td>{formatDateTime(row.lastActiveAt)}</td>
-                      <td>
+                      <td className="px-4 py-3.5 text-sm text-muted">{safeText(row.email)}</td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{safeText(row.providerName)}</span>
+                      </td>
+                      <td className="px-4 py-3.5 text-sm text-muted">{safeText(row.outlookAccountEmail) || '--'}</td>
+                      <td className="px-4 py-3.5 text-sm text-muted">{formatDateTime(row.createdAt)}</td>
+                      <td className="px-4 py-3.5 text-sm text-muted">{formatDateTime(row.lastActiveAt)}</td>
+                      <td className="px-4 py-3.5 text-center">
                         <button
                           className={`switch-el ${isActive ? 'on' : ''}`}
                           role="switch"
@@ -188,13 +184,13 @@ export function AdminPage() {
                           onClick={() => handleToggleEnabled(row, !isActive)}
                         />
                       </td>
-                      <td>
+                      <td className="px-4 py-3.5 text-center">
                         <button
-                          className={`switch-el ${isAdmin ? 'on' : ''}`}
+                          className={`switch-el ${isAdminUser ? 'on' : ''}`}
                           role="switch"
-                          aria-checked={isAdmin}
+                          aria-checked={isAdminUser}
                           disabled={isPending || isSelf}
-                          onClick={() => handleToggleAdmin(row, !isAdmin)}
+                          onClick={() => handleToggleAdmin(row, !isAdminUser)}
                         />
                       </td>
                     </tr>
@@ -206,20 +202,12 @@ export function AdminPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-4">
-              <button
-                className="btn btn-secondary btn-sm"
-                disabled={page === 0}
-                onClick={() => setPage(page - 1)}
-              >
+            <div className="flex justify-center gap-2 py-4 border-t border-gray-100">
+              <button className="btn btn-secondary btn-sm" disabled={page === 0} onClick={() => setPage(page - 1)}>
                 Previous
               </button>
               <span className="chip">{page + 1} / {totalPages}</span>
-              <button
-                className="btn btn-secondary btn-sm"
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage(page + 1)}
-              >
+              <button className="btn btn-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
                 Next
               </button>
             </div>
@@ -237,23 +225,23 @@ export function AdminPage() {
           const isSelf = row.id === currentUserId;
           const isPending = pendingIds.has(row.id);
           const isActive = row.isEnabled !== false;
-          const isAdmin = row.role === 'admin';
+          const isAdminUser = row.role === 'admin';
           return (
-            <article key={row.id} className="user-card grid gap-3">
+            <article key={row.id} className="bg-white rounded-xl border border-gray-200/60 p-4 grid gap-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="font-bold text-sm">{safeText(row.name)}</div>
-                  <p className="text-muted text-[13px]">{safeText(row.email)}</p>
+                  <p className="text-muted text-xs">{safeText(row.email)}</p>
                 </div>
-                {isSelf && <span className="badge badge-primary">Current</span>}
+                {isSelf && <span className="badge badge-primary">You</span>}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                <span className="badge badge-info">{safeText(row.providerName)}</span>
+                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{safeText(row.providerName)}</span>
                 {row.outlookAccountEmail && <span className="badge badge-accent">Outlook linked</span>}
               </div>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-muted">Active</span>
+                  <span className="text-xs font-medium text-muted">Active</span>
                   <button
                     className={`switch-el ${isActive ? 'on' : ''}`}
                     role="switch"
@@ -263,13 +251,13 @@ export function AdminPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-muted">Admin</span>
+                  <span className="text-xs font-medium text-muted">Admin</span>
                   <button
-                    className={`switch-el ${isAdmin ? 'on' : ''}`}
+                    className={`switch-el ${isAdminUser ? 'on' : ''}`}
                     role="switch"
-                    aria-checked={isAdmin}
+                    aria-checked={isAdminUser}
                     disabled={isPending || isSelf}
-                    onClick={() => handleToggleAdmin(row, !isAdmin)}
+                    onClick={() => handleToggleAdmin(row, !isAdminUser)}
                   />
                 </div>
               </div>
@@ -277,7 +265,6 @@ export function AdminPage() {
           );
         })}
 
-        {/* Mobile pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center gap-2">
             <button className="btn btn-secondary btn-sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Prev</button>

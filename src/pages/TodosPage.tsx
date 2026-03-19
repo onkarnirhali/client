@@ -134,25 +134,21 @@ export function TodosPage() {
   const doneTasks = items.filter((t) => t.status === 'done').length;
 
   return (
-    <div className="grid gap-6">
-      {/* Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <article className="metric-card">
-          <div className="metric-label">Open tasks</div>
-          <div className="metric-value">{openTasks}</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">Completed</div>
-          <div className="metric-value">{doneTasks}</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">Total tasks</div>
-          <div className="metric-value">{items.length}</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">Filters active</div>
-          <div className="metric-value">{hasFilters ? 'Yes' : 'No'}</div>
-        </article>
+    <div className="grid gap-5">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight">Todos</h1>
+          <p className="text-sm text-muted mt-0.5">Your personal task dashboard.</p>
+        </div>
+        <button
+          className="inline-flex items-center gap-2 bg-primary text-white rounded-[10px] px-4 py-2.5 text-sm font-semibold hover:bg-primary-strong transition-colors shadow-sm self-start"
+          onClick={openCreate}
+          disabled={formSubmitting}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+          New Todo
+        </button>
       </div>
 
       {/* Filters */}
@@ -166,51 +162,45 @@ export function TodosPage() {
 
       {/* Error */}
       {error && (
-        <div className="panel p-4 border-danger/20 bg-danger-soft text-danger text-sm font-bold">
+        <div className="bg-red-50 border border-red-200 rounded-[10px] p-4 text-red-700 text-sm font-medium">
           Failed to load todos. Try again later.
         </div>
       )}
 
-      {/* Board layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
-        <div>
-          {/* Empty welcome state */}
-          {!loading && !error && items.length === 0 && !hasFilters ? (
-            <div className="panel p-8 md:p-12 text-center grid gap-4 max-w-[840px] mx-auto">
-              <h2 className="title-md">Welcome to Might as well</h2>
-              <p className="text-muted text-[15px] max-w-[520px] mx-auto">
-                Your AI-assisted todo manager. Add a task to get started and see the magic happen.
-              </p>
-              <div className="flex justify-center">
-                <button className="btn btn-primary" onClick={openCreate} disabled={formSubmitting}>
-                  Add New Task
-                </button>
-              </div>
-            </div>
-          ) : !loading && items.length === 0 && hasFilters ? (
-            <div className="panel p-8 text-center grid gap-3 max-w-[720px] mx-auto">
-              <h3 className="text-lg font-bold">No tasks match these filters</h3>
-              <p className="text-muted text-sm">Try adjusting your search, status, priority, or due date range.</p>
-              <div className="flex justify-center gap-2">
-                <button className="btn btn-secondary" onClick={handleResetFilters}>Clear Filters</button>
-                <button className="btn btn-primary" onClick={openCreate}>New Todo</button>
-              </div>
-            </div>
-          ) : (
-            <TodoList items={items} loading={loading} onEdit={openEdit} onDelete={setConfirmTodo} />
-          )}
+      {/* Empty welcome state */}
+      {!loading && !error && items.length === 0 && !hasFilters && (
+        <div className="bg-white rounded-xl border border-gray-200/60 p-8 md:p-12 text-center grid gap-4 max-w-[840px] mx-auto">
+          <h2 className="text-lg font-bold">Welcome to Might as well</h2>
+          <p className="text-muted text-sm max-w-[520px] mx-auto">
+            Your AI-assisted todo manager. Add a task to get started and see the magic happen.
+          </p>
+          <div className="flex justify-center">
+            <button className="btn btn-primary" onClick={openCreate} disabled={formSubmitting}>
+              Add New Task
+            </button>
+          </div>
         </div>
+      )}
 
-        {/* Side rail - AI suggestions */}
-        <aside className="hidden xl:block">
-          <AiSuggestionsWidget />
-        </aside>
-      </div>
+      {/* No filter results */}
+      {!loading && items.length === 0 && hasFilters && (
+        <div className="bg-white rounded-xl border border-gray-200/60 p-8 text-center grid gap-3 max-w-[720px] mx-auto">
+          <h3 className="text-lg font-bold">No tasks match these filters</h3>
+          <p className="text-muted text-sm">Try adjusting your search, status, priority, or due date range.</p>
+          <div className="flex justify-center gap-2">
+            <button className="btn btn-secondary" onClick={handleResetFilters}>Clear Filters</button>
+            <button className="btn btn-primary" onClick={openCreate}>New Todo</button>
+          </div>
+        </div>
+      )}
 
-      {/* Mobile AI bubble */}
-      <div className="xl:hidden">
-        <AiSuggestionsWidget />
-      </div>
+      {/* Board + AI Suggestions */}
+      {(loading || items.length > 0) && (
+        <TodoList items={items} loading={loading} onEdit={openEdit} onDelete={setConfirmTodo} />
+      )}
+
+      {/* AI Suggestions */}
+      <AiSuggestionsWidget />
 
       {/* Form dialog */}
       <TodoFormDialog
@@ -224,23 +214,31 @@ export function TodosPage() {
 
       {/* Delete confirm dialog */}
       {confirmTodo && (
-        <>
-          <div className="dialog-overlay" onClick={() => setConfirmTodo(null)} />
-          <div className="dialog-content panel p-6 text-center grid gap-4">
-            <h3 className="text-lg font-extrabold">Delete Task?</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="dialog-overlay absolute inset-0" onClick={() => setConfirmTodo(null)} />
+          <div className="relative bg-white rounded-2xl border border-gray-200/60 shadow-2xl w-full max-w-sm p-6 text-center grid gap-4">
+            <h3 className="text-lg font-bold">Delete Task?</h3>
             <p className="text-muted text-sm">
               Are you sure you want to delete &quot;{confirmTodo.title}&quot;? This action cannot be undone.
             </p>
             <div className="flex justify-center gap-3">
-              <button className="btn btn-secondary" onClick={() => setConfirmTodo(null)} disabled={deleteMutation.isPending}>
+              <button
+                className="px-4 py-2.5 text-sm font-medium text-muted border border-gray-200 rounded-[10px] hover:bg-gray-50 transition-colors"
+                onClick={() => setConfirmTodo(null)}
+                disabled={deleteMutation.isPending}
+              >
                 Cancel
               </button>
-              <button className="btn btn-danger" onClick={handleDelete} disabled={deleteMutation.isPending}>
+              <button
+                className="px-4 py-2.5 text-sm font-semibold bg-red-600 text-white rounded-[10px] hover:bg-red-700 transition-colors"
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+              >
                 {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

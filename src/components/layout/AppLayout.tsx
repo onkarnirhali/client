@@ -13,17 +13,19 @@ export function AppLayout() {
   const navigate = useNavigate();
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
 
   const isAdmin = user?.role === 'admin';
   const currentPath = location.pathname;
+  const initials = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?';
 
-  const gmail = providers.find((p) => p.provider === 'gmail');
-  const outlook = providers.find((p) => p.provider === 'outlook');
   const reconnectRequired = providers.filter(
     (p) => !p.linked && p.metadata?.reconnectRequired === true
   );
   const reconnectPrimary = reconnectRequired[0];
+
+  const gmail = providers.find((p) => p.provider === 'gmail');
+  const outlook = providers.find((p) => p.provider === 'outlook');
 
   const connectProvider = (provider: string) => {
     const base = API_BASE_URL || '';
@@ -32,9 +34,9 @@ export function AppLayout() {
   };
 
   const navItems = [
-    { label: 'Board', path: '/app', meta: '/app' },
-    { label: 'Notes', path: '/app/notes', meta: 'library' },
-    ...(isAdmin ? [{ label: 'Admin', path: '/admin', meta: 'access' }] : []),
+    { label: 'Todos', path: '/app' },
+    { label: 'Notes', path: '/app/notes' },
+    ...(isAdmin ? [{ label: 'Admin', path: '/admin' }] : []),
   ];
 
   const isActive = (path: string) => {
@@ -43,128 +45,154 @@ export function AppLayout() {
   };
 
   return (
-    <main className="relative z-[1] min-h-screen">
-      <div className="w-[min(1480px,calc(100%-32px))] mx-auto py-6 pb-[104px] grid grid-cols-1 lg:grid-cols-[290px_minmax(0,1fr)] gap-6">
-        {/* Sidebar */}
-        <aside className="hidden lg:block sticky top-5 self-start">
-          <div className="grid gap-[18px]">
-            <div className="panel p-5">
-              <div className="flex items-center gap-3.5">
-                <span className="w-11 h-11 rounded-[16px] inline-flex items-center justify-center bg-linear-to-br from-primary to-primary-strong text-white text-xl font-extrabold">M</span>
-                <div className="grid gap-0.5">
-                  <span className="text-base font-extrabold">Might as well</span>
-                  <span className="text-muted text-[13px]">Workspace</span>
-                </div>
-              </div>
-              <div className="inline-flex items-center gap-2 mt-[18px] min-h-[42px] px-3.5 rounded-[16px] bg-white/75 border border-border text-muted text-[13px] font-bold">
-                {user?.name || user?.email || 'User'}
-              </div>
-              <nav className="grid gap-2.5 mt-[18px]">
-                {navItems.map((item) => (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className={`flex items-center justify-between gap-3 min-h-[48px] px-4 rounded-[18px] border border-transparent text-left font-bold transition-all cursor-pointer ${
-                      isActive(item.path)
-                        ? 'text-primary-strong bg-primary-soft border-primary/10'
-                        : 'text-muted hover:bg-white/40'
-                    }`}
-                  >
-                    <span>{item.label}</span>
-                    <span className="text-muted text-xs font-extrabold">{item.meta}</span>
-                  </button>
-                ))}
-              </nav>
+    <div className="min-h-screen bg-[#f6f6f8]">
+      {/* ===== TopBar ===== */}
+      <header className="bg-white border-b border-gray-200/60 sticky top-0 z-50">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/app')}>
+            <div className="w-8 h-8 bg-primary rounded-[10px] flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
             </div>
+            <span className="font-bold text-lg tracking-tight">Might as well</span>
+          </div>
 
-            <div className="panel p-5">
-              <div className="grid gap-3">
-                <span className="eyebrow"><span className="eyebrow-dot" />provider health</span>
-                <div className="grid gap-3">
-                  <div className="mini-card">
-                    <strong>{gmail?.linked ? 'Gmail connected' : 'Gmail not connected'}</strong>
-                    <span>{gmail?.linked && gmail?.ingestEnabled ? 'Ingestion active' : gmail?.linked ? 'Connected (ingest off)' : 'Not linked yet'}</span>
-                  </div>
-                  <div className="mini-card">
-                    <strong>{outlook?.linked ? 'Outlook connected' : 'Outlook not connected'}</strong>
-                    <span>{outlook?.linked && outlook?.ingestEnabled ? 'Ingestion active' : reconnectPrimary?.provider === 'outlook' ? 'Needs reconnection' : outlook?.linked ? 'Connected (ingest off)' : 'Not linked yet'}</span>
-                  </div>
-                </div>
-              </div>
+          {/* Desktop Nav */}
+          <nav className="hidden sm:flex items-center gap-1">
+            {navItems.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive(item.path)
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted hover:bg-gray-100'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Right: User */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block text-right">
+              <div className="text-sm font-semibold">{user?.name || user?.email || 'User'}</div>
+              <div className="text-xs text-muted">{user?.email}</div>
             </div>
+            {/* Avatar with dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setAvatarMenuOpen(!avatarMenuOpen)}
+                className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-primary-strong transition-colors"
+              >
+                {initials}
+              </button>
 
-            <div className="panel p-5 grid gap-3">
-              <button onClick={() => setIntegrationsOpen(true)} className="mini-card text-left hover:border-primary/20 transition-colors cursor-pointer">
-                <strong>Manage Integrations</strong><span>Connect or disconnect providers</span>
-              </button>
-              <button onClick={() => setPrivacyOpen(true)} className="mini-card text-left hover:border-primary/20 transition-colors cursor-pointer">
-                <strong>Privacy Controls</strong><span>Export data or manage account</span>
-              </button>
-              <button onClick={() => logout()} className="mini-card text-left hover:border-danger/20 transition-colors cursor-pointer">
-                <strong className="text-danger">Logout</strong><span>Sign out of your account</span>
-              </button>
+              {avatarMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setAvatarMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-xl border border-gray-200/60 shadow-lg py-1.5 z-50">
+                    {/* Gmail Status */}
+                    <div
+                      className={`mx-1.5 my-0.5 px-3 py-2.5 rounded-lg text-white text-sm flex items-center gap-2 cursor-pointer transition-colors ${
+                        gmail?.linked ? 'bg-green-800 hover:bg-green-900' : 'bg-gray-600 hover:bg-gray-700'
+                      }`}
+                      onClick={() => { setAvatarMenuOpen(false); gmail?.linked ? setIntegrationsOpen(true) : connectProvider('gmail'); }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {gmail?.linked ? (
+                          <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>
+                        ) : (
+                          <><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></>
+                        )}
+                      </svg>
+                      <span>{gmail?.linked ? 'Gmail Connected' : 'Connect Gmail'}</span>
+                      {gmail?.linked && <span className="text-xs opacity-70 ml-auto">Active</span>}
+                    </div>
+                    {/* Outlook Status */}
+                    <div
+                      className={`mx-1.5 my-0.5 px-3 py-2.5 rounded-lg text-white text-sm flex items-center gap-2 cursor-pointer transition-colors ${
+                        outlook?.linked ? 'bg-green-800 hover:bg-green-900' : 'bg-gray-700 hover:bg-gray-800'
+                      }`}
+                      onClick={() => { setAvatarMenuOpen(false); outlook?.linked ? setIntegrationsOpen(true) : connectProvider('outlook'); }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {outlook?.linked ? (
+                          <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>
+                        ) : (
+                          <><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></>
+                        )}
+                      </svg>
+                      <span>{outlook?.linked ? 'Outlook Connected' : 'Connect Outlook'}</span>
+                      {outlook?.linked && <span className="text-xs opacity-70 ml-auto">Active</span>}
+                    </div>
+                    <div className="border-t border-gray-100 my-1.5" />
+                    <button onClick={() => { setAvatarMenuOpen(false); setIntegrationsOpen(true); }} className="w-full text-left mx-1.5 my-0.5 px-3 py-2 rounded-lg text-sm cursor-pointer hover:bg-gray-50 transition-colors" style={{ width: 'calc(100% - 12px)' }}>
+                      Manage Integrations
+                    </button>
+                    <button onClick={() => { setAvatarMenuOpen(false); setPrivacyOpen(true); }} className="w-full text-left mx-1.5 my-0.5 px-3 py-2 rounded-lg text-sm cursor-pointer hover:bg-gray-50 transition-colors" style={{ width: 'calc(100% - 12px)' }}>
+                      Privacy Controls
+                    </button>
+                    <div className="border-t border-gray-100 my-1.5" />
+                    <button onClick={() => { setAvatarMenuOpen(false); logout(); }} className="w-full text-left mx-1.5 my-0.5 px-3 py-2 rounded-lg text-sm cursor-pointer hover:bg-gray-50 text-danger transition-colors" style={{ width: 'calc(100% - 12px)' }}>
+                      Logout
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        </aside>
+        </div>
 
-        {/* Content */}
-        <section className="grid gap-6 content-start">
-          <header className="panel px-[22px] py-[18px] flex items-center justify-between gap-[18px] flex-wrap">
-            <div className="flex lg:hidden items-center gap-2.5">
-              <span className="w-9 h-9 rounded-[14px] inline-flex items-center justify-center bg-linear-to-br from-primary to-primary-strong text-white text-sm font-extrabold">M</span>
-              <span className="text-base font-extrabold">Might as well</span>
+        {/* Mobile nav */}
+        <div className="sm:hidden border-t border-gray-100 flex">
+          {navItems.map((item) => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`flex-1 text-center py-2.5 text-xs font-medium transition-colors ${
+                isActive(item.path)
+                  ? 'font-semibold text-primary border-b-2 border-primary'
+                  : 'text-muted'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Reconnect Alert */}
+        {reconnectRequired.length > 0 && (
+          <div className="bg-amber-50 border-t border-amber-200 px-4 sm:px-6 py-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <span className="text-sm text-amber-900">
+                {reconnectPrimary?.displayName || reconnectPrimary?.provider || 'Provider'} access expired. Reconnect to resume email-based suggestions.
+              </span>
             </div>
-            <div className="flex items-center gap-3.5 flex-wrap ml-auto">
-              <span className="chip hidden sm:inline-flex">{user?.name || user?.email || 'User'}</span>
-              <div className="relative lg:hidden">
-                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="chip cursor-pointer hover:bg-white/90">Menu</button>
-                {mobileMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 panel p-2 z-50 grid gap-1">
-                    <button onClick={() => { setIntegrationsOpen(true); setMobileMenuOpen(false); }} className="text-left px-3 py-2 rounded-[var(--radius-xs)] hover:bg-white/60 text-sm font-bold">Manage Integrations</button>
-                    <button onClick={() => { setPrivacyOpen(true); setMobileMenuOpen(false); }} className="text-left px-3 py-2 rounded-[var(--radius-xs)] hover:bg-white/60 text-sm font-bold">Privacy Controls</button>
-                    <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="text-left px-3 py-2 rounded-[var(--radius-xs)] hover:bg-white/60 text-sm font-bold text-danger">Logout</button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </header>
+            <button
+              onClick={() => reconnectRequired.length === 1 && reconnectPrimary ? connectProvider(reconnectPrimary.provider) : setIntegrationsOpen(true)}
+              className="text-sm font-semibold text-amber-900 hover:underline whitespace-nowrap ml-4"
+            >
+              Reconnect {reconnectPrimary?.displayName || ''}
+            </button>
+          </div>
+        )}
+      </header>
 
-          {reconnectRequired.length > 0 && (
-            <div className="banner">
-              <div>
-                <strong>Reconnect {reconnectPrimary?.displayName || reconnectPrimary?.provider || 'provider'}</strong>
-                <p>{reconnectRequired.length === 1 ? `${reconnectPrimary?.displayName || 'Provider'} access expired. Reconnect to resume suggestions.` : 'Some providers need reconnection.'}</p>
-              </div>
-              <button
-                onClick={() => reconnectRequired.length === 1 && reconnectPrimary ? connectProvider(reconnectPrimary.provider) : setIntegrationsOpen(true)}
-                className="btn btn-secondary whitespace-nowrap"
-              >
-                {reconnectRequired.length === 1 ? `Reconnect ${reconnectPrimary?.displayName || ''}` : 'Manage Integrations'}
-              </button>
-            </div>
-          )}
-
-          <Outlet />
-        </section>
-      </div>
-
-      {/* Mobile bottom nav */}
-      <nav className="fixed left-4 right-4 bottom-4 z-[12] flex lg:hidden items-center justify-between gap-2.5 p-2.5 bg-[rgba(255,253,249,0.92)] border border-border rounded-[22px] shadow-[0_22px_34px_rgba(24,23,20,0.12)] backdrop-blur-[16px]">
-        {navItems.map((item) => (
-          <button
-            key={item.path}
-            onClick={() => navigate(item.path)}
-            className={`flex-1 min-h-[48px] rounded-[16px] inline-flex items-center justify-center text-[13px] font-extrabold cursor-pointer transition-colors ${
-              isActive(item.path) ? 'bg-primary-soft text-primary-strong' : 'text-muted'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
+      {/* ===== Main Content ===== */}
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6">
+        <Outlet />
+      </main>
 
       <IntegrationsDialog open={integrationsOpen} onClose={() => setIntegrationsOpen(false)} />
       <PrivacyDialog open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
-    </main>
+    </div>
   );
 }

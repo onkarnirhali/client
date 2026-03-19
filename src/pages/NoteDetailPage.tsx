@@ -99,101 +99,149 @@ export function NoteDetailPage() {
   const needsUnlock = Boolean(data?.requiresUnlock && data?.isPasswordProtected);
 
   return (
-    <div className="grid gap-6">
+    <div className="max-w-4xl mx-auto grid gap-6">
       {/* Loading */}
       {isLoading && (
-        <div className="text-muted text-sm py-8 text-center">Loading note...</div>
+        <div className="text-center py-8">
+          <div className="w-8 h-8 mx-auto border-3 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="panel p-4 border-danger/20 bg-danger-soft text-danger text-sm font-bold">
+        <div className="bg-red-50 border border-red-200 rounded-[10px] p-4 text-red-700 text-sm font-medium">
           Failed to load note.
         </div>
       )}
 
       {!isLoading && !error && data && (
-        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
-          {/* Editor */}
-          <div className="editor-card grid gap-5">
-            <div className="grid gap-1.5">
-              <label className="field-label">Title</label>
+        <>
+          {/* Top Actions Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/app/notes')}
+                className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text transition-colors border border-gray-200 rounded-[10px] px-3 py-2 hover:bg-white"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+                Back to Notes
+              </button>
+              <button
+                onClick={() => navigate('/app')}
+                className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text transition-colors border border-gray-200 rounded-[10px] px-3 py-2 hover:bg-white"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                Dashboard
+              </button>
+            </div>
+            {/* Edit Toggle */}
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              <span className={`text-sm ${!editMode ? 'font-semibold text-text' : 'text-muted'}`}>View</span>
+              <button
+                onClick={() => !needsUnlock && setEditMode(!editMode)}
+                disabled={needsUnlock}
+                className={`switch-el ${editMode ? 'on' : ''}`}
+                role="switch"
+                aria-checked={editMode}
+              />
+              <span className={`text-sm ${editMode ? 'font-semibold text-primary' : 'text-muted'}`}>Edit</span>
+            </div>
+          </div>
+
+          {/* Note Editor Card */}
+          <div className="editor-card">
+            {/* Title */}
+            <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4">
               <input
-                className="input"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={!editMode}
+                className="w-full text-xl font-bold bg-transparent border-0 border-b-2 border-gray-100 focus:border-primary pb-3 focus:outline-none transition-colors placeholder:text-gray-300"
+                placeholder="Note title..."
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <span className="chip">Owner: You</span>
-              {data.isPasswordProtected && <span className="badge badge-danger">Password protected</span>}
+            {/* Rich Text Editor */}
+            <div className="px-5 sm:px-6 pb-2">
+              <NoteEditor
+                value={(content || EMPTY_NOTE_CONTENT) as NoteContent}
+                onChange={setContent}
+                editable={editMode}
+              />
             </div>
 
-            <NoteEditor
-              value={(content || EMPTY_NOTE_CONTENT) as NoteContent}
-              onChange={setContent}
-              editable={editMode}
-            />
-
+            {/* Password Protection Section */}
             {editMode && (
-              <div className="grid gap-4 pt-2 border-t border-border">
-                <div className="grid gap-2">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold">
+              <>
+                <div className="mx-5 sm:mx-6 border-t border-gray-100 my-2" />
+                <div className="px-5 sm:px-6 py-4">
+                  <label className="flex items-center gap-3 mb-4 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={protectionEnabled}
                       onChange={(e) => setProtectionEnabled(e.target.checked)}
-                      className="accent-primary w-4 h-4"
+                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/30 cursor-pointer accent-primary"
                     />
-                    Password Protect
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      Password Protect this Note
+                    </span>
                   </label>
 
                   {enablingProtection && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                      <div className="grid gap-1.5">
-                        <label className="field-label">Password</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-7">
+                      <div>
+                        <label className="block text-xs font-medium text-muted mb-1.5">Password</label>
                         <input
-                          className={`input ${passwordTooShort ? 'border-danger' : ''}`}
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Min 6 characters"
+                          className={`input ${passwordTooShort ? 'border-danger' : ''}`}
                         />
-                        {passwordTooShort && <span className="text-danger text-xs">Min 6 characters</span>}
+                        {passwordTooShort && <span className="text-danger text-xs mt-1 block">Min 6 characters</span>}
                       </div>
-                      <div className="grid gap-1.5">
-                        <label className="field-label">Confirm Password</label>
+                      <div>
+                        <label className="block text-xs font-medium text-muted mb-1.5">Confirm Password</label>
                         <input
-                          className={`input ${passwordMismatch ? 'border-danger' : ''}`}
                           type="password"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Re-enter password"
+                          className={`input ${passwordMismatch ? 'border-danger' : ''}`}
                         />
-                        {passwordMismatch && <span className="text-danger text-xs">Passwords do not match</span>}
+                        {passwordMismatch && <span className="text-danger text-xs mt-1 block">Passwords do not match</span>}
                       </div>
                     </div>
                   )}
 
                   {disablingProtection && (
-                    <div className="grid gap-1.5 mt-2 max-w-sm">
-                      <label className="field-label">Current Password</label>
+                    <div className="grid gap-1.5 pl-7 max-w-sm">
+                      <label className="block text-xs font-medium text-muted mb-1.5">Current Password</label>
                       <input
-                        className="input"
                         type="password"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
+                        className="input"
+                        placeholder="Enter current password"
                       />
                     </div>
                   )}
                 </div>
+              </>
+            )}
 
-                <div className="flex gap-2">
-                  <button className="btn btn-primary" onClick={handleSave} disabled={updateMutation.isPending}>
-                    {updateMutation.isPending ? 'Saving...' : 'Save changes'}
-                  </button>
-                  <button className="btn btn-secondary" onClick={() => {
+            {/* Footer / Save */}
+            {editMode && (
+              <div className="px-5 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+                <button
+                  className="px-4 py-2.5 text-sm font-medium text-muted border border-gray-200 rounded-[10px] hover:bg-white transition-colors"
+                  onClick={() => {
                     if (data) {
                       setTitle(data.title);
                       setContent((data.content || EMPTY_NOTE_CONTENT) as NoteContent);
@@ -203,55 +251,21 @@ export function NoteDetailPage() {
                       setCurrentPassword('');
                       setEditMode(false);
                     }
-                  }}>
-                    Cancel
-                  </button>
-                </div>
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-6 py-2.5 text-sm font-semibold bg-primary text-white rounded-[10px] hover:bg-primary-strong transition-colors shadow-sm"
+                  onClick={handleSave}
+                  disabled={updateMutation.isPending}
+                >
+                  {updateMutation.isPending ? 'Saving...' : 'Save Note'}
+                </button>
               </div>
             )}
           </div>
-
-          {/* Side rail */}
-          <aside className="grid gap-4 content-start">
-            <section className="panel p-5 grid gap-4">
-              <div className="flex items-center justify-between gap-2">
-                <button className="btn btn-secondary btn-sm" onClick={() => navigate('/app/notes')}>Back to notes</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app')}>Board</button>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="field-label">Edit mode</span>
-                <button
-                  onClick={() => setEditMode(!editMode)}
-                  disabled={needsUnlock}
-                  className={`switch-el ${editMode ? 'on' : ''}`}
-                  role="switch"
-                  aria-checked={editMode}
-                />
-              </div>
-            </section>
-
-            {data.linkedTaskCount > 0 && (
-              <section className="panel p-5 grid gap-3">
-                <span className="eyebrow"><span className="eyebrow-dot" />linked tasks</span>
-                <h3 className="text-sm font-extrabold">Task context stays beside the note.</h3>
-                <p className="text-muted text-sm">{data.linkedTaskCount} linked task{data.linkedTaskCount !== 1 ? 's' : ''}</p>
-              </section>
-            )}
-
-            <section className="panel p-5 grid gap-3">
-              <span className="eyebrow"><span className="eyebrow-dot" />protection</span>
-              <h3 className="text-sm font-extrabold">Security controls stay in context.</h3>
-              <div className="flex flex-wrap gap-2">
-                {data.isPasswordProtected ? (
-                  <span className="badge badge-danger">Enabled</span>
-                ) : (
-                  <span className="badge badge-primary">Disabled</span>
-                )}
-                <span className="chip text-xs">Require password to open</span>
-              </div>
-            </section>
-          </aside>
-        </div>
+        </>
       )}
 
       <NoteUnlockDialog
