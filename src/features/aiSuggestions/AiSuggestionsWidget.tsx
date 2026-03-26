@@ -11,6 +11,40 @@ import {
 } from './hooks';
 import { useSnackbar } from '../../components/feedback/SnackbarProvider';
 
+function getFallbackRefreshMessage(code?: string) {
+  switch (code) {
+    case 'SCHEMA_VALIDATION_FAILED':
+      return 'Suggestions refreshed with fallback because the AI response did not match the expected structure.';
+    case 'REFUSAL':
+      return 'Suggestions refreshed with fallback because the AI declined this request.';
+    case 'MAX_TOKENS':
+      return 'Suggestions refreshed with fallback because the AI response was cut off before completion.';
+    case 'PROVIDER_ERROR':
+      return 'Suggestions refreshed with fallback because the AI provider was temporarily unavailable.';
+    case 'EMPTY_RESULT':
+      return 'Suggestions refreshed with fallback because the AI returned no structured suggestions.';
+    default:
+      return 'Suggestions refreshed with fallback due to a temporary AI generation issue.';
+  }
+}
+
+function getFallbackRefreshHint(code?: string) {
+  switch (code) {
+    case 'SCHEMA_VALIDATION_FAILED':
+      return 'Using cached/history suggestions because the AI response did not match the expected structure.';
+    case 'REFUSAL':
+      return 'Using cached/history suggestions because the AI declined this refresh.';
+    case 'MAX_TOKENS':
+      return 'Using cached/history suggestions because the AI response was cut off before completion.';
+    case 'PROVIDER_ERROR':
+      return 'Using cached/history suggestions because the AI provider is temporarily unavailable.';
+    case 'EMPTY_RESULT':
+      return 'Using cached/history suggestions because the AI returned no structured suggestions.';
+    default:
+      return 'Using cached/history suggestions due to a temporary AI generation issue.';
+  }
+}
+
 export function AiSuggestionsWidget() {
   const { notify } = useSnackbar();
   const { data, isLoading, refetch, isFetching, error } = useAiSuggestions();
@@ -41,7 +75,7 @@ export function AiSuggestionsWidget() {
       const payload = await refreshMutation.mutateAsync();
       const refreshMeta = payload.refresh;
       if (refreshMeta?.generationFallbackUsed) {
-        setRefreshHint('Using cached/history suggestions due to temporary AI formatting issue.');
+        setRefreshHint(getFallbackRefreshHint(refreshMeta.generationErrorCode));
       } else if (refreshMeta?.partial) {
         if (refreshMeta.scheduleState === 'scheduled') {
           setRefreshHint('Showing latest suggestions now; full inbox catch-up is continuing.');
@@ -58,7 +92,7 @@ export function AiSuggestionsWidget() {
       await refetch();
       let message = 'Suggestions refreshed';
       if (refreshMeta?.generationFallbackUsed) {
-        message = 'Suggestions refreshed with fallback due to temporary AI formatting issue.';
+        message = getFallbackRefreshMessage(refreshMeta.generationErrorCode);
       } else if (refreshMeta?.preservedExisting) {
         message = 'Refresh completed. Keeping previous suggestions because no new suggestions were generated.';
       } else if (refreshMeta?.partial) {

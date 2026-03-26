@@ -1,13 +1,30 @@
 import { ChangeEvent } from 'react';
-import { UiPriority, UiStatus } from '../../features/todos/mapping';
+import type { TodoStatus } from '../../api/todos';
+import { UiPriority, UiStatus, todoStatusOptions } from '../../features/todos/mapping';
 
 export type TodoFiltersDraft = {
-  status: '' | UiStatus;
+  status: '' | UiStatus | TodoStatus;
   priority: '' | UiPriority;
   q: string;
   dueFrom: string;
   dueTo: string;
 };
+
+function normalizeStatus(status: TodoFiltersDraft['status']) {
+  switch (status) {
+    case 'To Do':
+    case 'todo':
+      return 'todo';
+    case 'In Progress':
+    case 'in_progress':
+      return 'in_progress';
+    case 'Done':
+    case 'done':
+      return 'done';
+    default:
+      return '';
+  }
+}
 
 type Props = {
   draft: TodoFiltersDraft;
@@ -37,13 +54,15 @@ export function TodoFilters({ draft, onDraftChange, onApply, onReset, busy }: Pr
         <div>
           <select
             className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-[10px] bg-white text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
-            value={draft.status}
-            onChange={(e) => onDraftChange({ ...draft, status: e.target.value as '' | UiStatus })}
+            value={normalizeStatus(draft.status)}
+            onChange={(e) => onDraftChange({ ...draft, status: e.target.value as '' | TodoStatus })}
           >
             <option value="">All Statuses</option>
-            <option value="To Do">To Do</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
+            {todoStatusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
         <div>

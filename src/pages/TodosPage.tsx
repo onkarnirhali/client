@@ -8,15 +8,16 @@ import {
   TodoInput,
   useCreateTodo,
   useDeleteTodo,
+  useReorderTodos,
   useTodos,
   useUpdateTodo,
 } from '../features/todos';
-import { apiPriorityFromUi, apiStatusFromUi, uiPriorityFromApi, uiStatusFromApi } from '../features/todos/mapping';
+import { apiPriorityFromUi, apiStatusFromUi, uiPriorityFromApi } from '../features/todos/mapping';
 import { AiSuggestionsWidget } from '../features/aiSuggestions/AiSuggestionsWidget';
 
 function toDraft(filters: QueryFilters): TodoFiltersDraft {
   return {
-    status: filters.status ? uiStatusFromApi(filters.status) : '',
+    status: filters.status ?? '',
     priority: filters.priority ? uiPriorityFromApi(filters.priority) : '',
     q: filters.q ?? '',
     dueFrom: filters.dueFrom ? filters.dueFrom.slice(0, 10) : '',
@@ -48,6 +49,7 @@ export function TodosPage() {
   const createMutation = useCreateTodo(filters);
   const updateMutation = useUpdateTodo(filters);
   const deleteMutation = useDeleteTodo(filters);
+  const reorderMutation = useReorderTodos();
 
   const formSubmitting = createMutation.isPending || updateMutation.isPending;
   const busy = formSubmitting || deleteMutation.isPending;
@@ -130,8 +132,14 @@ export function TodosPage() {
     }
   };
 
-  const openTasks = items.filter((t) => t.status !== 'done').length;
-  const doneTasks = items.filter((t) => t.status === 'done').length;
+  const handleReorder = async (payload: { lanes: { todo: number[]; in_progress: number[]; done: number[] } }) => {
+    try {
+      await reorderMutation.mutateAsync(payload);
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Failed to save board order', 'error');
+      throw err;
+    }
+  };
 
   return (
     <div className="grid gap-5">
@@ -196,7 +204,15 @@ export function TodosPage() {
 
       {/* Board + AI Suggestions */}
       {(loading || items.length > 0) && (
-        <TodoList items={items} loading={loading} onEdit={openEdit} onDelete={setConfirmTodo} />
+        <TodoList
+          items={items}
+          loading={loading}
+          dragDisabled={hasFilters}
+          reorderPending={reorderMutation.isPending}
+          onEdit={openEdit}
+          onDelete={setConfirmTodo}
+          onReorder={handleReorder}
+        />
       )}
 
       {/* AI Suggestions */}

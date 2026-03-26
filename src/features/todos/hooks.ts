@@ -1,6 +1,13 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createTodo, deleteTodo, listTodos, Todo, TodoFilters, TodoInput, updateTodo } from '../../api/todos';
+import {
+  createTodo,
+  deleteTodo,
+  listTodos,
+  reorderTodos,
+  updateTodo,
+} from '../../api/todos';
+import type { Todo, TodoFilters, TodoInput, TodoReorderInput } from '../../api/todos';
 
 function todosKey(filters: TodoFilters) {
   return ['todos', filters];
@@ -48,4 +55,14 @@ export function useDeleteTodo(filters: TodoFilters) {
   });
 }
 
-export type { Todo, TodoFilters, TodoInput } from '../../api/todos';
+export function useReorderTodos() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: TodoReorderInput) => reorderTodos(payload),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+}
+
+export type { Todo, TodoFilters, TodoInput, TodoReorderInput } from '../../api/todos';

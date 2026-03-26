@@ -1,8 +1,18 @@
 import { request } from './http';
 import { NoteContent } from './notes';
 
-export type TodoStatus = 'pending' | 'done';
+export type TodoStatus = 'todo' | 'in_progress' | 'done';
 export type TodoPriority = 'low' | 'normal' | 'high';
+
+export type TodoReorderLanes = {
+  todo: number[];
+  in_progress: number[];
+  done: number[];
+};
+
+export type TodoReorderInput = {
+  lanes: TodoReorderLanes;
+};
 
 export type Todo = {
   id: number;
@@ -12,6 +22,7 @@ export type Todo = {
   status: TodoStatus;
   priority: TodoPriority;
   dueDate: string | null;
+  position: number;
   createdAt: string;
   updatedAt: string;
   linkedNotes?: {
@@ -90,4 +101,11 @@ export async function updateTodo(id: number, payload: TodoInput) {
 
 export async function deleteTodo(id: number) {
   await request(`/api/todos/${id}`, { method: 'DELETE' });
+}
+
+export async function reorderTodos(payload: TodoReorderInput) {
+  await request('/api/todos/reorder', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }

@@ -25,7 +25,12 @@ export type SuggestionRefreshMeta = {
   processedMessages: number;
   preservedExisting?: boolean;
   generationFallbackUsed?: boolean;
-  generationErrorCode?: 'INVALID_JSON';
+  generationErrorCode?:
+    | 'SCHEMA_VALIDATION_FAILED'
+    | 'REFUSAL'
+    | 'MAX_TOKENS'
+    | 'PROVIDER_ERROR'
+    | 'EMPTY_RESULT';
 };
 
 export type SuggestionsResponse = {

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Todo, TodoInput } from '../../features/todos';
+import type { Todo, TodoInput, TodoStatus } from '../../api/todos';
 import { rephraseDescription } from '../../api/ai';
 import { HttpError } from '../../api/http';
 import { useSnackbar } from '../feedback/SnackbarProvider';
-import { UiPriority, UiStatus, apiPriorityFromUi, apiStatusFromUi, uiPriorityFromApi, uiStatusFromApi } from '../../features/todos/mapping';
+import { UiPriority, apiPriorityFromUi, uiPriorityFromApi, todoStatusOptions } from '../../features/todos/mapping';
 import {
   AddNotesMenuButton,
   LinkExistingNotesDialog,
@@ -11,14 +11,14 @@ import {
   LinkedNotesChips,
   NoteEditorDialog,
 } from '../notes';
-import { NoteInput, NoteSummary } from '../../features/notes';
+import type { NoteInput, NoteSummary } from '../../features/notes';
 
 type Mode = 'create' | 'edit';
 
 type FormState = {
   title: string;
   description: string;
-  status: UiStatus;
+  status: TodoStatus;
   priority: UiPriority;
   dueDate: string;
 };
@@ -35,7 +35,7 @@ type Props = {
 const defaultState: FormState = {
   title: '',
   description: '',
-  status: 'To Do',
+  status: 'todo',
   priority: 'Normal',
   dueDate: '',
 };
@@ -61,7 +61,7 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
         setForm({
           title: initial.title || '',
           description: initial.description || '',
-          status: uiStatusFromApi(initial.status),
+          status: initial.status,
           priority: uiPriorityFromApi(initial.priority),
           dueDate: toDateInput(initial.dueDate),
         });
@@ -89,7 +89,7 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
     const payload: TodoInput = {
       title: form.title.trim(),
       description: form.description.trim() ? form.description.trim() : null,
-      status: apiStatusFromUi(form.status),
+      status: form.status,
       priority: apiPriorityFromUi(form.priority),
       dueDate: form.dueDate ? new Date(`${form.dueDate}T00:00:00.000Z`).toISOString() : null,
       notes: {
@@ -199,18 +199,18 @@ export function TodoFormDialog({ open, mode, initial, onClose, onSubmit, submitt
               <div>
                 <label className="block text-sm font-medium mb-1.5">Status</label>
                 <div className="flex border border-gray-200 rounded-[10px] overflow-hidden">
-                  {(['To Do', 'In Progress', 'Done'] as UiStatus[]).map((s) => (
+                  {todoStatusOptions.map((option, index) => (
                     <button
-                      key={s}
+                      key={option.value}
                       type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, status: s }))}
+                      onClick={() => setForm((prev) => ({ ...prev, status: option.value }))}
                       className={`flex-1 py-2 text-xs font-medium transition-colors ${
-                        form.status === s
+                        form.status === option.value
                           ? 'font-semibold bg-primary/10 text-primary'
                           : 'text-muted hover:bg-gray-50'
-                      } ${s !== 'Done' ? 'border-r border-gray-200' : ''}`}
+                      } ${index < todoStatusOptions.length - 1 ? 'border-r border-gray-200' : ''}`}
                     >
-                      {s}
+                      {option.label}
                     </button>
                   ))}
                 </div>
